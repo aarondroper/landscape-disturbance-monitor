@@ -1,13 +1,11 @@
 # Landscape Disturbance & Recovery Monitor
 
-This repository contains the approved first three milestones for the
-Kårböle/Ljusdal 2018 disturbance case study. It probes Sentinel-2 STAC and
-remote COG feasibility, builds August 2017/2018 composites on a 20 m
-EPSG:32633 grid, calculates NBR and dNBR, detects and filters disturbance
-components, polygonizes the retained objects, and records sensitivity results.
-
-Recovery analysis, later-year processing, and frontend work are not yet
-implemented.
+This repository contains the approved first three milestones plus milestone
+4A for the Kårböle/Ljusdal 2018 disturbance case study. It probes Sentinel-2
+STAC and remote COG feasibility, builds August 2017/2018 prototype products,
+detects and filters the fixed disturbance objects, and validates one
+memory-bounded annual Sentinel-2 NBR/NDVI composite. Recovery analysis and
+frontend work are planned but not implemented.
 
 ## Setup
 
@@ -38,6 +36,12 @@ Build the filtered disturbance masks, polygons, diagnostics, and summary:
 python -m landscape_monitor.build_disturbance
 ```
 
+Build one explicit annual NBR/NDVI composite (milestone 4A):
+
+```bash
+python -m landscape_monitor.build_annual_series --year 2019
+```
+
 Run tests and lint checks:
 
 ```bash
@@ -47,6 +51,9 @@ ruff check .
 
 Configuration is in [`config/project.toml`](config/project.toml). Generated
 STAC inventory is written to `data/inventory/`; prototype outputs are written
-to `data/derived/prototype/`, and disturbance outputs to
-`data/derived/disturbance/`. These reproducible build outputs are intentionally
-excluded from Git; see [`data/README.md`](data/README.md).
+to `data/derived/prototype/`, disturbance outputs to
+`data/derived/disturbance/`, and milestone-4A annual outputs to
+`data/derived/annual/`. Temporary date-level derived products are written
+under `data/.tmp/annual/` and removed after a successful or failed run unless
+explicit diagnostic retention is requested. These reproducible build
+outputs are intentionally excluded from Git; see [`data/README.md`](data/README.md).

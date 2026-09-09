@@ -33,6 +33,9 @@ Thumbs.db
 # Reproducible STAC discovery output
 data/inventory/*.json
 
+# Local temporary annual acquisition products
+data/.tmp/**
+
 # Reproducible EO analytical outputs (keep local build products untracked)
 data/derived/**
 !data/derived/prototype/

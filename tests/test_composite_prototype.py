@@ -4,6 +4,7 @@ from landscape_monitor.composite_prototype import (
     apply_scale_offset,
     area_hectares_at_least,
     calculate_nbr,
+    calculate_ndvi,
     create_analysis_grid,
     dnbr,
     group_acquisition_items,
@@ -35,6 +36,15 @@ def test_scl_mask_uses_required_invalid_classes():
 
 def test_nbr_handles_nan_and_zero_denominator():
     result = calculate_nbr(
+        np.array([[3, 1, 0, np.nan, -0.1]], dtype=np.float32),
+        np.array([[1, 3, 0, 1, 0.2]], dtype=np.float32),
+    )
+    np.testing.assert_allclose(result[0, :2], [0.5, -0.5])
+    assert np.isnan(result[0, 2]) and np.isnan(result[0, 3]) and np.isnan(result[0, 4])
+
+
+def test_ndvi_handles_nodata_and_zero_denominator():
+    result = calculate_ndvi(
         np.array([[3, 1, 0, np.nan, -0.1]], dtype=np.float32),
         np.array([[1, 3, 0, 1, 0.2]], dtype=np.float32),
     )

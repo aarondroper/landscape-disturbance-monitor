@@ -1,4 +1,4 @@
-"""Small, deterministic Sentinel-2 NBR compositing building blocks.
+"""Small, deterministic Sentinel-2 compositing building blocks.
 
 The functions in this module are deliberately independent of Earth Search so
 that the numerical and grouping behavior can be tested with small arrays.
@@ -14,6 +14,7 @@ from typing import Any, Iterable, Sequence
 
 import numpy as np
 import rasterio
+from rasterio.enums import Resampling
 from rasterio.features import geometry_mask
 from rasterio.transform import Affine, from_origin
 from rasterio.warp import reproject, transform_bounds
@@ -140,6 +141,25 @@ def calculate_nbr(
         nbr[valid] = (nir_float[valid] - swir_float[valid]) / denominator[valid]
     nbr[~np.isfinite(nbr)] = np.nan
     return nbr
+
+
+def calculate_ndvi(
+    nir: np.ndarray, red: np.ndarray, valid_mask: np.ndarray | None = None
+) -> np.ndarray:
+    """Calculate NDVI, returning NaN for nodata, bad denominators, or invalid pixels."""
+    nir_float = np.asarray(nir, dtype=np.float32)
+    red_float = np.asarray(red, dtype=np.float32)
+    denominator = nir_float + red_float
+    valid = np.isfinite(nir_float) & np.isfinite(red_float) & np.isfinite(denominator)
+    valid &= denominator != 0
+    valid &= (nir_float >= 0) & (red_float >= 0)
+    if valid_mask is not None:
+        valid &= valid_mask
+    ndvi = np.full(nir_float.shape, np.nan, dtype=np.float32)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ndvi[valid] = (nir_float[valid] - red_float[valid]) / denominator[valid]
+    ndvi[~np.isfinite(ndvi)] = np.nan
+    return ndvi
 
 
 def median_composite(observations: Sequence[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
@@ -294,7 +314,14 @@ def read_remote_asset_to_grid(
     href = asset.get("href")
     if not href or not str(href).startswith(("https://", "http://")):
         raise ValueError(f"Expected an HTTPS COG href, got {href!r}")
-    with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_USE_HEAD="NO"):
+    with rasterio.Env(
+        GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR",
+        CPL_VSIL_CURL_USE_HEAD="NO",
+        GDAL_HTTP_TIMEOUT="60",
+        GDAL_HTTP_MAX_RETRY="2",
+        GDAL_HTTP_RETRY_DELAY="1",
+        GDAL_CACHEMAX=256,
+    ):
         with rasterio.open(str(href)) as dataset:
             window = source_window(dataset, grid)
             raw = dataset.read(1, window=window, masked=False)
@@ -331,4 +358,58 @@ def read_asset_metadata(asset: dict[str, Any]) -> dict[str, float | None]:
     return {
         "scale": float(metadata["scale"]) if metadata.get("scale") is not None else None,
         "offset": float(metadata["offset"]) if metadata.get("offset") is not None else None,
+    }
+
+
+def read_item_indices(
+    item: dict[str, Any],
+    grid: AnalysisGrid,
+    asset_getter: Any,
+) -> dict[str, np.ndarray]:
+    """Read one item and calculate NBR/NDVI on the common grid.
+
+    NIR, red, and SWIR2 are averaged when reprojected to 20 m. SCL uses
+    nearest-neighbour. NBR validity intentionally does not depend on red so
+    that the approved 2017/2018 NBR prototype semantics remain unchanged.
+    """
+    bands = ("nir", "red", "swir2", "scl")
+    assets = {band: asset_getter(item, band) for band in bands}
+    metadata = {band: read_asset_metadata(assets[band]) for band in bands}
+    for band in ("nir", "red", "swir2"):
+        if metadata[band]["scale"] is None:
+            raise ValueError(
+                f"Item {item['id']} lacks STAC raster scale metadata for {band}; "
+                "refresh the inventory with stac_probe.py"
+            )
+    # Deliberately read one band at a time.  The annual builder processes one
+    # item at a time and must not multiply source/destination raster buffers
+    # with a thread pool.  The three float32 reflectance arrays are retained
+    # only until both indices for this one item have been calculated.
+    reflectance: dict[str, np.ndarray] = {}
+    for band in ("nir", "red", "swir2"):
+        reflectance[band] = read_remote_asset_to_grid(
+            assets[band],
+            grid,
+            **metadata[band],
+            resampling=Resampling.average,
+        )
+    scl = read_remote_asset_to_grid(
+        assets["scl"],
+        grid,
+        scale=1.0,
+        offset=0.0,
+        resampling=Resampling.nearest,
+    )
+    scl = np.where(np.isfinite(scl), np.rint(scl), 0).astype(np.uint8)
+    scl_valid = valid_scl_mask(scl) & grid.aoi_mask
+    nbr_mask = scl_valid & np.isfinite(reflectance["nir"]) & np.isfinite(reflectance["swir2"])
+    ndvi_mask = scl_valid & np.isfinite(reflectance["nir"]) & np.isfinite(reflectance["red"])
+    nbr = calculate_nbr(reflectance["nir"], reflectance["swir2"], nbr_mask)
+    ndvi = calculate_ndvi(reflectance["nir"], reflectance["red"], ndvi_mask)
+    return {
+        "nbr": nbr,
+        "nbr_mask": nbr_mask & np.isfinite(nbr),
+        "ndvi": ndvi,
+        "ndvi_mask": ndvi_mask & np.isfinite(ndvi),
+        "scale_offset": metadata,
     }

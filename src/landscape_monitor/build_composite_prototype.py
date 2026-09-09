@@ -12,7 +12,6 @@ import numpy as np
 import rasterio
 from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
-from rasterio.enums import Resampling
 
 from .composite_prototype import (
     COUNT_NODATA,
@@ -20,7 +19,6 @@ from .composite_prototype import (
     SCL_INVALID_CLASSES,
     AnalysisGrid,
     area_hectares_at_least,
-    calculate_nbr,
     create_analysis_grid,
     distribution,
     dnbr,
@@ -28,15 +26,14 @@ from .composite_prototype import (
     median_composite,
     mosaic_valid_pixels,
     read_asset_metadata,
-    read_remote_asset_to_grid,
+    read_item_indices,
     valid_count_distribution,
-    valid_scl_mask,
 )
 from .config import ProjectConfig, load_config
 
 DIAGNOSTIC_DNBR_THRESHOLDS = (0.10, 0.20, 0.30, 0.40, 0.50)
 BASELINE_NBR_THRESHOLDS = (None, 0.20, 0.30, 0.40)
-PROCESSING_BANDS = ("nir", "swir2", "scl")
+PROCESSING_BANDS = ("red", "nir", "swir2", "scl")
 
 
 def load_inventory(path: Path) -> list[dict[str, Any]]:
@@ -59,25 +56,8 @@ def _asset(item: dict[str, Any], band: str) -> dict[str, Any]:
 def _read_item_observation(
     item: dict[str, Any], grid: AnalysisGrid
 ) -> tuple[np.ndarray, np.ndarray]:
-    metadata = {band: read_asset_metadata(_asset(item, band)) for band in ("nir", "swir2", "scl")}
-    if metadata["nir"]["scale"] is None or metadata["swir2"]["scale"] is None:
-        raise ValueError(
-            f"Item {item['id']} lacks STAC raster scale metadata for NIR/SWIR2; "
-            "refresh the inventory with stac_probe.py"
-        )
-    nir = read_remote_asset_to_grid(
-        _asset(item, "nir"), grid, **metadata["nir"], resampling=Resampling.average
-    )
-    swir2 = read_remote_asset_to_grid(
-        _asset(item, "swir2"), grid, **metadata["swir2"], resampling=Resampling.average
-    )
-    scl = read_remote_asset_to_grid(
-        _asset(item, "scl"), grid, scale=1.0, offset=0.0, resampling=Resampling.nearest
-    )
-    scl = np.where(np.isfinite(scl), np.rint(scl), 0).astype(np.uint8)
-    mask = valid_scl_mask(scl) & np.isfinite(nir) & np.isfinite(swir2) & grid.aoi_mask
-    nbr = calculate_nbr(nir, swir2, mask)
-    return nbr, mask & np.isfinite(nbr)
+    result = read_item_indices(item, grid, _asset)
+    return result["nbr"], result["nbr_mask"]
 
 
 def process_year(items: list[dict[str, Any]], year: int, grid: AnalysisGrid) -> dict[str, Any]:
