@@ -1,0 +1,25 @@
+[project]
+study_area_id = "karbole-ljusdal-2018-wildfire"
+
+[aoi]
+west = 15.12
+south = 61.86
+east = 15.60
+north = 62.08
+
+[temporal]
+analysis_years = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+month = 8
+window_start_day = 1
+window_end_day = 31
+benchmark_years = [2017, 2018, 2020, 2023, 2026]
+
+[stac]
+endpoint = "https://earth-search.aws.element84.com/v1"
+collection = "sentinel-2-l2a"
+
+[disturbance]
+baseline_nbr_min = 0.30
+dnbr_min = 0.30
+min_patch_ha = 5.0
+connectivity = 8

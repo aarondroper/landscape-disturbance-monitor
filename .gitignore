@@ -1,0 +1,41 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Build and package metadata
+build/
+dist/
+*.egg-info/
+*.whl
+
+# Coverage and test reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# IDE/editor and OS noise
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local agent/workspace metadata
+.agents/
+.codex/
+
+# Reproducible STAC discovery output
+data/inventory/*.json
+
+# Reproducible EO analytical outputs (keep local build products untracked)
+data/derived/**
+!data/derived/prototype/
+!data/derived/prototype/.gitkeep
+!data/derived/disturbance/
+!data/derived/disturbance/.gitkeep
