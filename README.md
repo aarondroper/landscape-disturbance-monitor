@@ -1,11 +1,11 @@
 # Landscape Disturbance & Recovery Monitor
 
-This repository contains the approved first three milestones plus milestone
-4A for the Kårböle/Ljusdal 2018 disturbance case study. It probes Sentinel-2
-STAC and remote COG feasibility, builds August 2017/2018 prototype products,
-detects and filters the fixed disturbance objects, and validates one
-memory-bounded annual Sentinel-2 NBR/NDVI composite. Recovery analysis and
-frontend work are planned but not implemented.
+This repository contains the approved first three milestones plus milestones
+4A and 4B for the Kårböle/Ljusdal 2018 disturbance case study. It probes
+Sentinel-2 STAC and remote COG feasibility, builds August 2017/2018 prototype
+products, detects and filters the fixed disturbance objects, and validates
+memory-bounded annual Sentinel-2 NBR/NDVI composites for 2019 and 2020.
+Recovery analysis and frontend work are planned but not implemented.
 
 ## Setup
 
@@ -41,6 +41,18 @@ Build one explicit annual NBR/NDVI composite (milestone 4A):
 ```bash
 python -m landscape_monitor.build_annual_series --year 2019
 ```
+
+Build a small explicit set of annual composites sequentially and resumably
+(milestone 4B):
+
+```bash
+python -m landscape_monitor.build_annual_batch --years 2019 2020
+python -m landscape_monitor.build_annual_batch --years 2019 2020 --dry-run
+```
+
+`--years` is required and accepts only configured years. Duplicate years are
+sorted and removed. Valid completed years are skipped; missing years are built
+one at a time. Invalid existing outputs stop the batch for inspection.
 
 Run tests and lint checks:
 

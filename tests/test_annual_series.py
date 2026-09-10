@@ -124,6 +124,11 @@ def test_output_grid_validation_accepts_approved_shape_and_rejects_wrong_grid(tm
             annual.validate_output_grid(dataset, wrong, path)
 
 
+def test_qa_title_uses_requested_year():
+    assert annual._qa_title(2019) == "2019 August median NBR"
+    assert annual._qa_title(2020) == "2020 August median NBR"
+
+
 def test_cli_requires_explicit_year_and_has_no_all_mode():
     with pytest.raises(SystemExit):
         annual.parse_args([])
@@ -136,6 +141,27 @@ def test_unsupported_year_fails_clearly():
     config = load_config(Path("config/project.toml"))
     with pytest.raises(ValueError, match="unsupported year"):
         annual._build_interval(config, 1900)
+
+
+def test_scale_offset_summary_ignores_items_without_processable_assets():
+    items = [
+        {
+            "id": "processable",
+            "relevant_assets": {
+                band: [
+                    {
+                        "cog_likely": True,
+                        "href": f"https://example/{band}.tif",
+                        "raster:bands": [{"scale": 1.0, "offset": 0.0}],
+                    }
+                ]
+                for band in annual.PROCESSING_BANDS
+            },
+        },
+        {"id": "missing-red", "relevant_assets": {"nir": []}},
+    ]
+    result = annual._scale_offset_summary([items[0]])
+    assert set(result) == set(annual.PROCESSING_BANDS)
 
 
 def test_annual_build_api_requires_one_year_argument():

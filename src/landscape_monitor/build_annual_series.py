@@ -377,7 +377,11 @@ def _raster_values(path: Path, grid: AnalysisGrid, *, count: bool = False) -> np
         return values
 
 
-def _qa_nbr(path: Path, values: np.ndarray, grid: AnalysisGrid) -> None:
+def _qa_title(year: int) -> str:
+    return f"{year} August median NBR"
+
+
+def _qa_nbr(path: Path, values: np.ndarray, grid: AnalysisGrid, year: int) -> None:
     masked = np.ma.masked_invalid(values)
     colormap = plt.get_cmap("YlGn").copy()
     colormap.set_bad("#d9d9d9")
@@ -399,7 +403,7 @@ def _qa_nbr(path: Path, values: np.ndarray, grid: AnalysisGrid) -> None:
             color="black",
             linewidth=0.6,
         )
-        axis.set_title("2019 August median NBR")
+        axis.set_title(_qa_title(year))
         axis.set_xlabel("Easting (m), EPSG:32633")
         axis.set_ylabel("Northing (m), EPSG:32633")
         axis.grid(color="white", linewidth=0.35, alpha=0.35)
@@ -415,7 +419,7 @@ def _build_interval(config: ProjectConfig, year: int) -> tuple[date, date]:
     if (config.month, config.window_start_day, config.window_end_day) != (8, 1, 31):
         raise ValueError(
             "milestone 4A requires the configured interval "
-            "2019-08-01 through 2019-08-31"
+            "August 1 through August 31"
         )
     return date(year, 8, 1), date(year, 8, 31)
 
@@ -544,7 +548,7 @@ def build(
         # time, after block reduction has completed.
         nbr_values = _raster_values(staged_paths["nbr"], grid)
         nbr_stats = distribution(nbr_values)
-        _qa_nbr(staged_paths["qa"], nbr_values, grid)
+        _qa_nbr(staged_paths["qa"], nbr_values, grid, year)
         del nbr_values
         ndvi_values = _raster_values(staged_paths["ndvi"], grid)
         ndvi_stats = distribution(ndvi_values)
@@ -589,7 +593,12 @@ def build(
             "valid_count_distribution": count_stats,
             "nbr_distribution": nbr_stats,
             "ndvi_distribution": ndvi_stats,
-            "reflectance_scale_offset_metadata_encountered": _scale_offset_summary(selected),
+            # Some inventory items can be present but lack one of the required
+            # likely-COG assets.  They are intentionally excluded from
+            # processing and from the metadata summary as well.
+            "reflectance_scale_offset_metadata_encountered": _scale_offset_summary(
+                processable_items
+            ),
             "processing": {
                 "same_date_mosaic": "first valid pixel in sorted (MGRS tile, Item ID) order",
                 "scl_invalid_classes": [0, 1, 3, 8, 9, 10, 11],

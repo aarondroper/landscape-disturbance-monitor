@@ -14,6 +14,55 @@ approximately 52 MiB, and the validation took approximately 44 minutes in
 that environment. These figures are validation observations, not guaranteed
 runtime or resource requirements elsewhere.
 
+The current local annual outputs for 2019 and 2020 both validate as complete.
+The 2020 output contains 72 STAC Items grouped into 18 acquisitions, with
+100% NBR and NDVI coverage; its child process peak RSS was approximately
+298 MiB. These are local validation results, not a claim that the full
+configured year range has been generated.
+
 This design was selected to keep memory bounded while preserving an exact
 temporal median. Temporary workspaces are cleaned after the run, and final
 outputs are promoted atomically after reduction and QA complete.
+
+## Resumable explicit-year orchestration
+
+The one-year command remains the analytical primitive:
+
+```bash
+python -m landscape_monitor.build_annual_series --year 2019
+```
+
+Milestone 4B adds a small orchestration layer around that command. Years must
+always be supplied explicitly; the batch command never expands a request to
+all configured years. Duplicate requested years are sorted chronologically
+and removed. For example:
+
+```bash
+python -m landscape_monitor.build_annual_batch --years 2019 2020
+python -m landscape_monitor.build_annual_batch --years 2019 2020 --dry-run
+```
+
+Before processing, each `data/derived/annual/<year>/` directory is classified
+from its actual files and metadata as `COMPLETE`, `MISSING`, or `INVALID`. A
+complete year is validated and skipped. A missing or empty year directory is
+passed to the existing single-year command. A non-empty directory with
+missing, malformed, unreadable, or inconsistent outputs is `INVALID`; the
+batch reports the reasons and stops without deleting or silently overwriting
+it. The batch does not use its status report as the source of truth.
+
+Required analytical completeness includes `nbr.tif`, `ndvi.tif`,
+`valid_count.tif`, and a parseable `annual-summary.json`; the summary must
+match the requested year and contain the established annual-build provenance.
+All three rasters must be readable, single-band products on the approved
+EPSG:32633, 20 m, 1266×1233 analysis grid with matching transforms and
+bounds. The optional `nbr-qa.png` is not required for analytical completeness.
+
+Years are processed strictly sequentially. Each missing year runs in a fresh
+child Python process using `build_annual_series`; no annual worker pool or
+annual concurrency is used. A non-zero child exit, or a post-build validation
+failure, stops later years. Earlier successful outputs remain in place and
+later years are recorded as `not_attempted`. Successful non-dry-run attempts
+write the generated, Git-ignored `data/derived/annual/build-status.json` with
+timestamps, per-year validation, child exit codes, and overall status. Dry runs
+perform validation and report skip/build decisions without launching a child
+or writing the status file.
