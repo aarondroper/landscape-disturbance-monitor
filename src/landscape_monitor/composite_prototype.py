@@ -10,7 +10,7 @@ import math
 import warnings
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
 import rasterio
@@ -273,6 +273,11 @@ def valid_count_distribution(
         "max": int(np.max(values)),
         "zero_count": int(np.count_nonzero(values == 0)),
     }
+
+
+def is_usable_acquisition(record: Mapping[str, Any]) -> bool:
+    """Return whether a grouped acquisition contributed any valid AOI pixel."""
+    return record["valid_pixel_count"] > 0
 
 
 def group_acquisition_items(items: Iterable[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:

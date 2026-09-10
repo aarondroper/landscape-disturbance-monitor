@@ -23,6 +23,7 @@ from .composite_prototype import (
     distribution,
     dnbr,
     group_acquisition_items,
+    is_usable_acquisition,
     median_composite,
     mosaic_valid_pixels,
     read_asset_metadata,
@@ -105,7 +106,7 @@ def process_year(items: list[dict[str, Any]], year: int, grid: AnalysisGrid) -> 
         "valid_count_distribution": valid_count_distribution(valid_count, grid.aoi_mask),
         "acquisition_date_groups": len(dates),
         "usable_acquisition_dates": sum(
-            date_record["valid_pixel_count"] > 0 for date_record in dates
+            is_usable_acquisition(date_record) for date_record in dates
         ),
         "composite_valid_pixel_count": int(
             np.count_nonzero(np.isfinite(composite) & grid.aoi_mask)

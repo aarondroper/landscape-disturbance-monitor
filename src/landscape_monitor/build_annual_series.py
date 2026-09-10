@@ -37,6 +37,7 @@ from .composite_prototype import (
     create_analysis_grid,
     distribution,
     group_acquisition_items,
+    is_usable_acquisition,
     read_asset_metadata,
     read_item_indices,
     valid_count_distribution,
@@ -560,7 +561,7 @@ def build(
 
         processable_items = [item for item in selected if _processable(item)]
         usable_records = [
-            record for record in acquisition_records if record["valid_pixel_count"] > 0
+            record for record in acquisition_records if is_usable_acquisition(record)
         ]
         aoi_pixels = int(np.count_nonzero(grid.aoi_mask))
         summary: dict[str, Any] = {

@@ -32,14 +32,14 @@ diagnostic, not a final disturbance method.
 ## Observations and coverage
 
 2017 used 17 Items on 9 grouped dates: Aug 1, 3, 6, 13, 16, 20, 23, 26,
-and 30; 6 dates contributed at least one valid AOI pixel. Same-date SCL-valid
+and 30; 7 dates contributed at least one valid AOI pixel. Same-date SCL-valid
 AOI percentages were 45.67, 64.66, 53.98, 7.22, 0.00, 24.72, 0.00, 0.00,
 and 97.76%. The annual median is finite for
 99.77% of AOI pixels. Valid-date counts have median 3, interquartile range
 2–4, maximum 6, and 3,499 zero-count pixels.
 
 2018 used 68 Items on 19 grouped dates: Aug 1, 3, 5, 6, 8, 10, 11, 13, 15,
-16, 18, 20, 21, 23, 25, 26, 28, 30, and 31; 14 dates contributed at least one
+16, 18, 20, 21, 23, 25, 26, 28, 30, and 31; 15 dates contributed at least one
 valid AOI pixel. Same-date SCL-valid AOI percentages ranged from 0.00% to
 89.91%; the full list is in the JSON report.
 The annual median is finite for 99.97% of AOI pixels. Valid-date counts have

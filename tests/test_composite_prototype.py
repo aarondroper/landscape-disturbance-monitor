@@ -1,6 +1,9 @@
 import numpy as np
+from rasterio.transform import from_origin
 
+import landscape_monitor.build_composite_prototype as prototype
 from landscape_monitor.composite_prototype import (
+    AnalysisGrid,
     apply_scale_offset,
     area_hectares_at_least,
     calculate_nbr,
@@ -8,6 +11,7 @@ from landscape_monitor.composite_prototype import (
     create_analysis_grid,
     dnbr,
     group_acquisition_items,
+    is_usable_acquisition,
     median_composite,
     mosaic_valid_pixels,
     valid_count_distribution,
@@ -95,3 +99,54 @@ def test_acquisition_grouping_uses_utc_calendar_date_and_sorted_ids():
     groups = group_acquisition_items(items)
     assert list(groups) == ["2018-08-01", "2018-08-02"]
     assert [item["id"] for item in groups["2018-08-01"]] == ["c", "a"]
+
+
+def test_usable_acquisition_requires_any_valid_pixel():
+    records = [
+        {"date": "zero", "valid_pixel_count": 0, "valid_pixel_percentage": 0.0},
+        {"date": "one", "valid_pixel_count": 1, "valid_pixel_percentage": 0.01},
+        {"date": "partial", "valid_pixel_count": 2, "valid_pixel_percentage": 0.02},
+    ]
+    assert [is_usable_acquisition(record) for record in records] == [False, True, True]
+
+
+def test_prototype_usable_count_matches_per_date_records(monkeypatch):
+    grid = AnalysisGrid(
+        crs="EPSG:32633",
+        resolution=20.0,
+        transform=from_origin(500000, 500040, 20, 20),
+        width=2,
+        height=2,
+        bounds=(500000, 500000, 500040, 500040),
+        aoi_mask=np.ones((2, 2), dtype=bool),
+    )
+    items = [
+        {"id": "zero", "datetime": "2017-08-01T10:00:00Z", "mgrs_tile": "33VVJ"},
+        {"id": "one", "datetime": "2017-08-02T10:00:00Z", "mgrs_tile": "33VVJ"},
+        {"id": "partial", "datetime": "2017-08-03T10:00:00Z", "mgrs_tile": "33VVJ"},
+    ]
+    observations = {
+        "zero": (np.full((2, 2), np.nan, dtype=np.float32), np.zeros((2, 2), dtype=bool)),
+        "one": (
+            np.array([[1.0, np.nan], [np.nan, np.nan]], dtype=np.float32),
+            np.array([[True, False], [False, False]]),
+        ),
+        "partial": (
+            np.array([[2.0, 3.0], [np.nan, np.nan]], dtype=np.float32),
+            np.array([[True, True], [False, False]]),
+        ),
+    }
+
+    monkeypatch.setattr(
+        prototype,
+        "_read_item_observation",
+        lambda item, _grid: observations[item["id"]],
+    )
+    result = prototype.process_year(items, 2017, grid)
+
+    records = result["acquisition_dates"]
+    assert [record["valid_pixel_count"] for record in records] == [0, 1, 2]
+    assert result["usable_acquisition_dates"] == sum(
+        is_usable_acquisition(record) for record in records
+    )
+    assert result["usable_acquisition_dates"] == 2

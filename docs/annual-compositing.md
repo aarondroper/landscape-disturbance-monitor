@@ -66,3 +66,27 @@ write the generated, Git-ignored `data/derived/annual/build-status.json` with
 timestamps, per-year validation, child exit codes, and overall status. Dry runs
 perform validation and report skip/build decisions without launching a child
 or writing the status file.
+
+## Regression check against the approved 2017/2018 prototype
+
+On 2026-09-10, the generalized annual pipeline was run for 2017 and 2018 and
+compared with the approved prototype NBR rasters. Both pairs used the identical
+EPSG:32633 grid, transform, dimensions, bounds, float32 dtype, and `-9999`
+nodata convention. The valid masks matched exactly. For 2017, all 1,538,379
+shared valid pixels matched exactly; for 2018, all 1,541,488 shared valid
+pixels matched exactly. In both comparisons, maximum, mean, and median absolute
+difference and RMSE were 0.0, and the counts above 1e-6, 1e-5, 1e-4, and 1e-3
+were all zero.
+
+The annual provenance matched the prototype inventory exactly: 17 Items in 9
+groups for 2017 and 68 Items in 19 groups for 2018, with identical Item sets,
+grouped dates, per-date Item lists, and per-date valid-pixel counts. An earlier
+generated prototype summary declared 6 and 14 usable dates, respectively,
+although its per-date records contain 7 and 15 positive-validity dates. The
+prototype metadata-counting logic now uses those per-date records, and the
+generalized annual summaries report 7 and 15 usable dates. This metadata
+inconsistency did not affect the raster regression result.
+
+The builds remained sequential and memory-bounded. Child peak RSS was 287.88
+MiB for 2017 and 288.28 MiB for 2018; peak AOI-only temporary storage was 30.179
+MiB and 61.129 MiB, respectively, and both temporary workspaces were cleaned.
