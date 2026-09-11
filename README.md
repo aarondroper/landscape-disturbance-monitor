@@ -1,12 +1,13 @@
 # Landscape Disturbance & Recovery Monitor
 
 This repository contains the approved first three milestones plus milestones
-4A–4F for the Kårböle/Ljusdal 2018 disturbance case study. It probes
+4A–4F and the local milestone-5A recovery analysis for the Kårböle/Ljusdal
+2018 disturbance case study. It probes
 Sentinel-2 STAC and remote COG feasibility, builds August 2017/2018 prototype
 products, detects and filters the fixed disturbance objects, and validates
-memory-bounded annual Sentinel-2 NBR/NDVI composites for 2019 and 2020.
-NBR is the primary future recovery indicator; recovery analysis and frontend
-work are planned but not implemented.
+memory-bounded annual Sentinel-2 NBR/NDVI composites for the complete
+2017–2026 series. NBR is the primary spectral-recovery indicator, with NDVI
+retained as contextual information. Frontend work is not implemented.
 
 ## Setup
 
@@ -51,6 +52,13 @@ python -m landscape_monitor.build_annual_batch --years 2019 2020
 python -m landscape_monitor.build_annual_batch --years 2019 2020 --dry-run
 ```
 
+Build the local NBR spectral-recovery analysis from the existing annual series
+and fixed disturbance objects (milestone 5A):
+
+```bash
+python -m landscape_monitor.build_recovery
+```
+
 `--years` is required and accepts only configured years. Duplicate years are
 sorted and removed. Valid completed years are skipped; missing years are built
 one at a time. Invalid existing outputs stop the batch for inspection.
@@ -65,8 +73,9 @@ ruff check .
 Configuration is in [`config/project.toml`](config/project.toml). Generated
 STAC inventory is written to `data/inventory/`; prototype outputs are written
 to `data/derived/prototype/`, disturbance outputs to
-`data/derived/disturbance/`, and milestone-4A annual outputs to
-`data/derived/annual/`. Temporary date-level derived products are written
+`data/derived/disturbance/`, milestone-4A annual outputs to
+`data/derived/annual/`, and local recovery analysis to
+`data/derived/recovery/`. Temporary date-level derived products are written
 under `data/.tmp/annual/` and removed after a successful or failed run unless
 explicit diagnostic retention is requested. These reproducible build
 outputs are intentionally excluded from Git; see [`data/README.md`](data/README.md).

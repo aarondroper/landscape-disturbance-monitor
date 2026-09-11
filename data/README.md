@@ -8,6 +8,8 @@
   GeoJSON, and summaries from `python -m landscape_monitor.build_disturbance`.
 - `derived/annual/<year>/` contains the explicit single-year annual NBR/NDVI
   outputs and one lightweight QA image from milestone 4A.
+- `derived/recovery/` contains the local milestone-5A NBR spectral-recovery
+  rasters, deterministic object/landscape JSON, and analytical QA figures.
 - `derived/annual/build-status.json` records the latest non-dry-run explicit
   annual batch attempt; it is advisory and does not replace output validation.
 - `derived/diagnostics/` contains local coverage and reflectance-treatment
