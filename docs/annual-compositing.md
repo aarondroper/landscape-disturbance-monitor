@@ -90,3 +90,15 @@ inconsistency did not affect the raster regression result.
 The builds remained sequential and memory-bounded. Child peak RSS was 287.88
 MiB for 2017 and 288.28 MiB for 2018; peak AOI-only temporary storage was 30.179
 MiB and 61.129 MiB, respectively, and both temporary workspaces were cleaned.
+
+## Reflectance validity and indicator priority
+
+Sentinel-2 L2A scale/offset metadata is applied before calculating NBR and
+NDVI. Negative scaled required-band reflectance is rejected in production,
+while `PRESERVE` and `CLAMP_ZERO` remain explicit diagnostic-only treatments;
+source nodata, the existing SCL mask, and finite nonzero-denominator rule are
+unchanged. `REJECT` can reduce coverage in post-2022 years, but retains
+interpretable values. NBR is the primary disturbance/recovery indicator.
+NDVI is secondary contextual information, with completeness reported and no
+NDVI-based recovery percentages. The 4E/4F diagnostics did not change the
+existing 2022/2023 annual outputs.

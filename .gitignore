@@ -38,6 +38,9 @@ data/.tmp/**
 
 # Reproducible EO analytical outputs (keep local build products untracked)
 data/derived/**
+# Coverage and reflectance diagnostic GeoTIFFs, PNGs, and JSON reports are
+# local audit artifacts and must never be staged with production source.
+data/derived/diagnostics/**
 !data/derived/prototype/
 !data/derived/prototype/.gitkeep
 !data/derived/disturbance/

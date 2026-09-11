@@ -34,10 +34,12 @@ from .composite_prototype import (
     COUNT_NODATA,
     FLOAT_NODATA,
     AnalysisGrid,
+    ReflectanceTreatment,
     create_analysis_grid,
     distribution,
     group_acquisition_items,
     is_usable_acquisition,
+    normalize_reflectance_treatment,
     read_asset_metadata,
     read_item_indices,
     valid_count_distribution,
@@ -245,6 +247,7 @@ def _process_acquisition(
     grid: AnalysisGrid,
     workspace: Path,
     telemetry: MemoryTelemetry,
+    treatment: ReflectanceTreatment,
 ) -> tuple[TemporaryAcquisition | None, dict[str, Any]]:
     """Read one date sequentially and write only its derived arrays to disk."""
     print(f"{acquisition_date}: reading {len(items)} item(s)", flush=True)
@@ -254,7 +257,7 @@ def _process_acquisition(
     ndvi_filled = np.zeros(grid.shape, dtype=bool)
 
     for item in items:
-        result = read_item_indices(item, grid, _asset)
+        result = read_item_indices(item, grid, _asset, treatment=treatment)
         _mosaic_into(date_nbr, nbr_filled, result["nbr"], result["nbr_mask"])
         _mosaic_into(date_ndvi, ndvi_filled, result["ndvi"], result["ndvi_mask"])
         del result
@@ -444,8 +447,11 @@ def build(
     year: int,
     *,
     keep_temp_on_error: bool = False,
+    treatment: ReflectanceTreatment | str = ReflectanceTreatment.REJECT,
+    output_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Build exactly one configured year and return its annual summary."""
+    treatment = normalize_reflectance_treatment(treatment)
     telemetry = MemoryTelemetry()
     telemetry.record("build start")
     config = load_config(config_path)
@@ -472,7 +478,7 @@ def build(
         flush=True,
     )
 
-    output_dir = output_root / str(year)
+    output_dir = output_root / str(year) if output_dir is None else output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
     staging_dir = Path(tempfile.mkdtemp(prefix=".annual-staging-", dir=output_dir))
     final_paths = {
@@ -528,6 +534,7 @@ def build(
                             grid,
                             workspace,
                             telemetry,
+                            treatment,
                         )
                         if acquisition is not None:
                             acquisitions.append(acquisition)
@@ -601,6 +608,7 @@ def build(
                 processable_items
             ),
             "processing": {
+                "reflectance_treatment": treatment.value,
                 "same_date_mosaic": "first valid pixel in sorted (MGRS tile, Item ID) order",
                 "scl_invalid_classes": [0, 1, 3, 8, 9, 10, 11],
                 "reflectance_resampling": "average",

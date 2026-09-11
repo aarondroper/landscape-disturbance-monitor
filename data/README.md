@@ -10,6 +10,9 @@
   outputs and one lightweight QA image from milestone 4A.
 - `derived/annual/build-status.json` records the latest non-dry-run explicit
   annual batch attempt; it is advisory and does not replace output validation.
+- `derived/diagnostics/` contains local coverage and reflectance-treatment
+  audit outputs. Diagnostic GeoTIFFs, PNGs, and JSON reports are ignored by
+  Git and must not be treated as production annual outputs.
 - `.tmp/annual/<year>/` is a run-owned workspace for AOI-only derived
   acquisition rasters. It is cleaned after each run unless
   `--keep-temp-on-error` is supplied; no raw Sentinel-2 scenes are cached.

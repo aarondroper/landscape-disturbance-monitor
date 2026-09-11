@@ -28,6 +28,7 @@ from .build_annual_series import (
     APPROVED_WIDTH,
     validate_output_grid,
 )
+from .composite_prototype import ReflectanceTreatment
 from .config import ProjectConfig, load_config
 
 ANNUAL_MODULE = "landscape_monitor.build_annual_series"
@@ -120,6 +121,14 @@ def _validate_summary(
         "exact per-pixel median across valid acquisition dates"
     ):
         reasons.append("summary does not record the approved exact temporal median")
+    stored_treatment = (
+        processing.get("reflectance_treatment") if isinstance(processing, dict) else None
+    )
+    if stored_treatment is not None and stored_treatment != ReflectanceTreatment.REJECT.value:
+        reasons.append(
+            "summary records a non-production reflectance treatment: "
+            f"{stored_treatment!r}"
+        )
 
     outputs = summary.get("outputs")
     if not isinstance(outputs, dict):

@@ -1,11 +1,12 @@
 # Landscape Disturbance & Recovery Monitor
 
 This repository contains the approved first three milestones plus milestones
-4A and 4B for the Kårböle/Ljusdal 2018 disturbance case study. It probes
+4A–4F for the Kårböle/Ljusdal 2018 disturbance case study. It probes
 Sentinel-2 STAC and remote COG feasibility, builds August 2017/2018 prototype
 products, detects and filters the fixed disturbance objects, and validates
 memory-bounded annual Sentinel-2 NBR/NDVI composites for 2019 and 2020.
-Recovery analysis and frontend work are planned but not implemented.
+NBR is the primary future recovery indicator; recovery analysis and frontend
+work are planned but not implemented.
 
 ## Setup
 

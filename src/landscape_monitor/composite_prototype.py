@@ -10,6 +10,7 @@ import math
 import warnings
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
@@ -28,6 +29,27 @@ SCL_INVALID_CLASSES = frozenset({0, 1, 3, 8, 9, 10, 11})
 FLOAT_NODATA = -9999.0
 COUNT_NODATA = 65535
 PIXEL_AREA_HECTARES = ANALYSIS_RESOLUTION * ANALYSIS_RESOLUTION / 10_000
+
+
+class ReflectanceTreatment(str, Enum):
+    """How finite scaled negative reflectance is treated for an index."""
+
+    REJECT = "reject"
+    PRESERVE = "preserve"
+    CLAMP_ZERO = "clamp-zero"
+
+
+def normalize_reflectance_treatment(
+    treatment: ReflectanceTreatment | str,
+) -> ReflectanceTreatment:
+    """Return a validated treatment enum for explicit diagnostic modes."""
+    if isinstance(treatment, ReflectanceTreatment):
+        return treatment
+    try:
+        return ReflectanceTreatment(str(treatment))
+    except ValueError as exc:
+        choices = ", ".join(mode.value for mode in ReflectanceTreatment)
+        raise ValueError(f"unknown reflectance treatment {treatment!r}; choose {choices}") from exc
 
 
 @dataclass(frozen=True)
@@ -121,45 +143,94 @@ def apply_scale_offset(
     )
 
 
+def index_validity_stages(
+    first: np.ndarray,
+    second: np.ndarray,
+    valid_mask: np.ndarray | None = None,
+    *,
+    treatment: ReflectanceTreatment | str = ReflectanceTreatment.REJECT,
+) -> dict[str, np.ndarray]:
+    """Return the shared normalized-index validity stages.
+
+    ``source_valid`` means both source arrays are finite and satisfy the
+    caller-provided mask. Source nodata is expected to have been converted to
+    non-finite values by the raster reader before this function is called.
+    Denominator validity is evaluated after the explicit treatment is applied.
+    """
+    mode = normalize_reflectance_treatment(treatment)
+    first_float = np.asarray(first, dtype=np.float32)
+    second_float = np.asarray(second, dtype=np.float32)
+    source_valid = np.isfinite(first_float) & np.isfinite(second_float)
+    if valid_mask is not None:
+        source_valid &= np.asarray(valid_mask, dtype=bool)
+    negative_present = source_valid & ((first_float < 0) | (second_float < 0))
+    first_used = first_float
+    second_used = second_float
+    if mode is ReflectanceTreatment.CLAMP_ZERO:
+        first_used = np.maximum(first_float, 0.0)
+        second_used = np.maximum(second_float, 0.0)
+    physical_valid = source_valid.copy()
+    if mode is ReflectanceTreatment.REJECT:
+        physical_valid &= (first_float >= 0) & (second_float >= 0)
+    denominator = first_used + second_used
+    denominator_valid = np.isfinite(denominator) & (denominator != 0)
+    before_denominator = physical_valid
+    final_valid = before_denominator & denominator_valid
+    return {
+        "source_valid": source_valid,
+        "negative_present": negative_present,
+        # Compatibility alias used by the completed 4E diagnostic.
+        "negative_rejected": negative_present & (mode is ReflectanceTreatment.REJECT),
+        "before_denominator": before_denominator,
+        "denominator_failure": before_denominator & ~denominator_valid,
+        "final_valid": final_valid,
+        "first_used": first_used,
+        "second_used": second_used,
+        "denominator": denominator,
+    }
+
+
+def _calculate_normalized_index(
+    first: np.ndarray,
+    second: np.ndarray,
+    valid_mask: np.ndarray | None,
+    *,
+    treatment: ReflectanceTreatment | str,
+) -> np.ndarray:
+    stages = index_validity_stages(first, second, valid_mask, treatment=treatment)
+    first_float = stages["first_used"]
+    second_float = stages["second_used"]
+    denominator = stages["denominator"]
+    result = np.full(first_float.shape, np.nan, dtype=np.float32)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        result[stages["final_valid"]] = (
+            (first_float[stages["final_valid"]] - second_float[stages["final_valid"]])
+            / denominator[stages["final_valid"]]
+        )
+    result[~np.isfinite(result)] = np.nan
+    return result
+
+
 def calculate_nbr(
-    nir: np.ndarray, swir2: np.ndarray, valid_mask: np.ndarray | None = None
+    nir: np.ndarray,
+    swir2: np.ndarray,
+    valid_mask: np.ndarray | None = None,
+    *,
+    treatment: ReflectanceTreatment | str = ReflectanceTreatment.REJECT,
 ) -> np.ndarray:
     """Calculate NBR, returning NaN for nodata, bad denominators, or invalid pixels."""
-    nir_float = np.asarray(nir, dtype=np.float32)
-    swir_float = np.asarray(swir2, dtype=np.float32)
-    denominator = nir_float + swir_float
-    valid = np.isfinite(nir_float) & np.isfinite(swir_float) & np.isfinite(denominator)
-    valid &= denominator != 0
-    # Negative reflectance is outside the physical domain of this normalized
-    # index and occurs for some low-signal pixels after an authoritative -0.1
-    # STAC offset is applied.  Excluding it avoids unstable ratios near zero.
-    valid &= (nir_float >= 0) & (swir_float >= 0)
-    if valid_mask is not None:
-        valid &= valid_mask
-    nbr = np.full(nir_float.shape, np.nan, dtype=np.float32)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        nbr[valid] = (nir_float[valid] - swir_float[valid]) / denominator[valid]
-    nbr[~np.isfinite(nbr)] = np.nan
-    return nbr
+    return _calculate_normalized_index(nir, swir2, valid_mask, treatment=treatment)
 
 
 def calculate_ndvi(
-    nir: np.ndarray, red: np.ndarray, valid_mask: np.ndarray | None = None
+    nir: np.ndarray,
+    red: np.ndarray,
+    valid_mask: np.ndarray | None = None,
+    *,
+    treatment: ReflectanceTreatment | str = ReflectanceTreatment.REJECT,
 ) -> np.ndarray:
     """Calculate NDVI, returning NaN for nodata, bad denominators, or invalid pixels."""
-    nir_float = np.asarray(nir, dtype=np.float32)
-    red_float = np.asarray(red, dtype=np.float32)
-    denominator = nir_float + red_float
-    valid = np.isfinite(nir_float) & np.isfinite(red_float) & np.isfinite(denominator)
-    valid &= denominator != 0
-    valid &= (nir_float >= 0) & (red_float >= 0)
-    if valid_mask is not None:
-        valid &= valid_mask
-    ndvi = np.full(nir_float.shape, np.nan, dtype=np.float32)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        ndvi[valid] = (nir_float[valid] - red_float[valid]) / denominator[valid]
-    ndvi[~np.isfinite(ndvi)] = np.nan
-    return ndvi
+    return _calculate_normalized_index(nir, red, valid_mask, treatment=treatment)
 
 
 def median_composite(observations: Sequence[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
@@ -336,10 +407,16 @@ def read_remote_asset_to_grid(
                 band_metadata = bands[0] if bands else {}
                 scale = band_metadata.get("scale", scale)
                 offset = band_metadata.get("offset", offset)
-            source = apply_scale_offset(raw, scale, offset)
             source_fill = -999999.0
+            # Identify source DN nodata before conversion. A valid DN that
+            # becomes negative after the authoritative offset remains valid.
+            source_valid = np.isfinite(raw)
             if source_nodata is not None:
-                source[raw == source_nodata] = source_fill
+                source_valid &= raw != source_nodata
+            raw_for_scaling = np.asarray(raw, dtype=np.float32)
+            raw_for_scaling[~source_valid] = 0.0
+            source = apply_scale_offset(raw_for_scaling, scale, offset)
+            source[~source_valid] = source_fill
             destination = np.full(grid.shape, source_fill, dtype=np.float32)
             reproject(
                 source=source,
@@ -370,6 +447,9 @@ def read_item_indices(
     item: dict[str, Any],
     grid: AnalysisGrid,
     asset_getter: Any,
+    treatment: ReflectanceTreatment | str = ReflectanceTreatment.REJECT,
+    *,
+    return_reflectance: bool = False,
 ) -> dict[str, np.ndarray]:
     """Read one item and calculate NBR/NDVI on the common grid.
 
@@ -409,12 +489,20 @@ def read_item_indices(
     scl_valid = valid_scl_mask(scl) & grid.aoi_mask
     nbr_mask = scl_valid & np.isfinite(reflectance["nir"]) & np.isfinite(reflectance["swir2"])
     ndvi_mask = scl_valid & np.isfinite(reflectance["nir"]) & np.isfinite(reflectance["red"])
-    nbr = calculate_nbr(reflectance["nir"], reflectance["swir2"], nbr_mask)
-    ndvi = calculate_ndvi(reflectance["nir"], reflectance["red"], ndvi_mask)
-    return {
+    nbr = calculate_nbr(
+        reflectance["nir"], reflectance["swir2"], nbr_mask, treatment=treatment
+    )
+    ndvi = calculate_ndvi(
+        reflectance["nir"], reflectance["red"], ndvi_mask, treatment=treatment
+    )
+    result: dict[str, Any] = {
         "nbr": nbr,
         "nbr_mask": nbr_mask & np.isfinite(nbr),
         "ndvi": ndvi,
         "ndvi_mask": ndvi_mask & np.isfinite(ndvi),
         "scale_offset": metadata,
     }
+    if return_reflectance:
+        result["reflectance"] = reflectance
+        result["scl_valid"] = scl_valid
+    return result

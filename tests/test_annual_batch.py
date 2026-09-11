@@ -150,6 +150,16 @@ def test_malformed_summary_and_wrong_year_are_invalid(tmp_path: Path):
     assert "summary outputs must be an object" in result.reasons
 
 
+def test_nonproduction_reflectance_treatment_is_not_complete(tmp_path: Path):
+    annual_dir = _write_complete_year(tmp_path / "annual", 2019)
+    summary = _valid_summary(2019)
+    summary["processing"]["reflectance_treatment"] = "preserve"
+    (annual_dir / "annual-summary.json").write_text(json.dumps(summary), encoding="utf-8")
+    result = batch.classify_annual_output(annual_dir, 2019, PROJECT_CONFIG)
+    assert result.state == "INVALID"
+    assert "non-production reflectance treatment" in " ".join(result.reasons)
+
+
 def test_mismatched_grid_and_unreadable_raster_are_invalid(tmp_path: Path):
     annual_dir = _write_complete_year(tmp_path / "annual", 2019)
     _write_raster(annual_dir / "ndvi.tif", transform=from_origin(506280.0, 6883240.0, 20, 20))
