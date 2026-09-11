@@ -1,7 +1,8 @@
 # Landscape Disturbance & Recovery Monitor
 
 This repository contains the approved first three milestones plus milestones
-4A–4F and the local milestone-5A recovery analysis for the Kårböle/Ljusdal
+4A–4F, local milestone-5A recovery analysis, and milestone-6E static data
+delivery for the Kårböle/Ljusdal
 2018 disturbance case study. It probes
 Sentinel-2 STAC and remote COG feasibility, builds August 2017/2018 prototype
 products, detects and filters the fixed disturbance objects, and validates
@@ -85,6 +86,19 @@ This local-only command writes EPSG:3857 three-band RGB COGs under
 explicit RGB nodata. It does not build frontend code or access STAC or remote
 EO resources. See [`docs/web-imagery-delivery.md`](docs/web-imagery-delivery.md).
 
+Build the static vector/JSON frontend data package (milestone 6E):
+
+```bash
+python -m landscape_monitor.build_web_data
+```
+
+This local-only command packages the approved disturbance polygons, compact
+NBR/recovery time series, landscape summary, and deterministic manifest under
+`data/derived/web-delivery/data/`. It preserves the original WGS84 polygon
+topology and applies only QA-gated coordinate rounding. It does not build
+frontend code or access network resources. See
+[`docs/web-data-delivery.md`](docs/web-data-delivery.md).
+
 Run tests and lint checks:
 
 ```bash
@@ -98,7 +112,8 @@ to `data/derived/prototype/`, disturbance outputs to
 `data/derived/disturbance/`, milestone-4A annual outputs to
 `data/derived/annual/`, local recovery analysis to `data/derived/recovery/`,
 and RGB presentation products to `data/derived/web-imagery/`; browser delivery
-COGs and their manifest are written separately to `data/derived/web-delivery/`.
+COGs, imagery manifest, and the static vector/JSON package are written
+separately under `data/derived/web-delivery/`.
 Temporary
 date-level derived products are written
 under `data/.tmp/annual/` and removed after a successful or failed run unless

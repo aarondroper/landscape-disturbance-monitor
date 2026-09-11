@@ -22,6 +22,10 @@
   are separate from the canonical `web-imagery/` masters and use explicit
   `[255,255,255]` nodata without an alpha band. All generated delivery files
   remain Git-ignored.
+- `derived/web-delivery/data/` contains the milestone-6E static vector/JSON
+  package: unsimplified WGS84 disturbance GeoJSON with QA-gated coordinate
+  rounding, compact disturbance time series, landscape summary, and a
+  deterministic manifest. Its analytical `area_ha` values remain authoritative.
 - `derived/annual/build-status.json` records the latest non-dry-run explicit
   annual batch attempt; it is advisory and does not replace output validation.
 - `derived/diagnostics/` contains local coverage and reflectance-treatment
