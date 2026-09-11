@@ -17,6 +17,11 @@
 - `derived/web-imagery/` is presentation imagery only. It does not replace the
   20 m analytical NBR/recovery grid, and it uses one shared display treatment
   for benchmark years 2017, 2018, 2020, 2023, and 2026.
+- `derived/web-delivery/` contains milestone-6D generated EPSG:3857, three-band
+  RGB browser COGs, quicklook comparisons, and `imagery-manifest.json`. These
+  are separate from the canonical `web-imagery/` masters and use explicit
+  `[255,255,255]` nodata without an alpha band. All generated delivery files
+  remain Git-ignored.
 - `derived/annual/build-status.json` records the latest non-dry-run explicit
   annual batch attempt; it is advisory and does not replace output validation.
 - `derived/diagnostics/` contains local coverage and reflectance-treatment

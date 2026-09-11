@@ -73,6 +73,18 @@ The command requires one explicit benchmark year and builds years sequentially;
 there is no implicit all-years mode. RGB presentation products use a fixed
 10 m grid and the approved `0.01–0.22`, gamma `1.0` display transform.
 
+Convert one approved local RGB master into a static MapLibre-oriented browser
+COG (milestone 6D):
+
+```bash
+python -m landscape_monitor.build_web_imagery --year 2017
+```
+
+This local-only command writes EPSG:3857 three-band RGB COGs under
+`data/derived/web-delivery/`, with one shared grid, internal overviews, and
+explicit RGB nodata. It does not build frontend code or access STAC or remote
+EO resources. See [`docs/web-imagery-delivery.md`](docs/web-imagery-delivery.md).
+
 Run tests and lint checks:
 
 ```bash
@@ -85,7 +97,9 @@ STAC inventory is written to `data/inventory/`; prototype outputs are written
 to `data/derived/prototype/`, disturbance outputs to
 `data/derived/disturbance/`, milestone-4A annual outputs to
 `data/derived/annual/`, local recovery analysis to `data/derived/recovery/`,
-and RGB presentation products to `data/derived/web-imagery/`. Temporary
+and RGB presentation products to `data/derived/web-imagery/`; browser delivery
+COGs and their manifest are written separately to `data/derived/web-delivery/`.
+Temporary
 date-level derived products are written
 under `data/.tmp/annual/` and removed after a successful or failed run unless
 explicit diagnostic retention is requested. These reproducible build
