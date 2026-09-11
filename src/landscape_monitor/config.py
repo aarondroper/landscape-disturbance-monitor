@@ -34,6 +34,10 @@ class ProjectConfig:
     dnbr_min: float
     min_patch_ha: float
     connectivity: int
+    visualization_resolution_m: float
+    rgb_black_point: float
+    rgb_white_point: float
+    rgb_gamma: float
 
     def annual_august_intervals(self) -> dict[int, tuple[str, str]]:
         """Return August search intervals as UTC ISO-8601 strings.
@@ -71,6 +75,7 @@ def load_config(path: str | Path) -> ProjectConfig:
     temporal = raw.get("temporal", {})
     stac = raw.get("stac", {})
     disturbance = raw.get("disturbance", {})
+    visualization = raw.get("visualization", {})
     try:
         bbox = BBox(*(float(aoi[name]) for name in ("west", "south", "east", "north")))
         years = _as_int_tuple(temporal.get("analysis_years"), "analysis_years")
@@ -82,6 +87,10 @@ def load_config(path: str | Path) -> ProjectConfig:
         dnbr_min = float(disturbance["dnbr_min"])
         min_patch_ha = float(disturbance["min_patch_ha"])
         connectivity = int(disturbance["connectivity"])
+        visualization_resolution_m = float(visualization["resolution_m"])
+        rgb_black_point = float(visualization["rgb_black_point"])
+        rgb_white_point = float(visualization["rgb_white_point"])
+        rgb_gamma = float(visualization["rgb_gamma"])
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError(f"Invalid configuration in {config_path}") from exc
 
@@ -110,6 +119,12 @@ def load_config(path: str | Path) -> ProjectConfig:
         raise ValueError("disturbance.min_patch_ha must be positive")
     if connectivity not in (4, 8):
         raise ValueError("disturbance.connectivity must be 4 or 8")
+    if visualization_resolution_m <= 0:
+        raise ValueError("visualization.resolution_m must be positive")
+    if not 0 <= rgb_black_point < rgb_white_point:
+        raise ValueError("visualization RGB black/white points must be ordered")
+    if rgb_gamma <= 0:
+        raise ValueError("visualization.rgb_gamma must be positive")
 
     return ProjectConfig(
         study_area_id=str(project["study_area_id"]),
@@ -125,4 +140,8 @@ def load_config(path: str | Path) -> ProjectConfig:
         dnbr_min=dnbr_min,
         min_patch_ha=min_patch_ha,
         connectivity=connectivity,
+        visualization_resolution_m=visualization_resolution_m,
+        rgb_black_point=rgb_black_point,
+        rgb_white_point=rgb_white_point,
+        rgb_gamma=rgb_gamma,
     )

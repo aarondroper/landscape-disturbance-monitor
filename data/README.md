@@ -10,6 +10,13 @@
   outputs and one lightweight QA image from milestone 4A.
 - `derived/recovery/` contains the local milestone-5A NBR spectral-recovery
   rasters, deterministic object/landscape JSON, and analytical QA figures.
+- `derived/web-imagery/<year>/` contains generated 10 m RGB reflectance masters,
+  RGBA Cloud Optimized GeoTIFFs, and lightweight RGB quicklooks for milestone
+  6C. `rgb-imagery-summary.json` records the five-year source, processing,
+  coverage, display, and resource provenance.
+- `derived/web-imagery/` is presentation imagery only. It does not replace the
+  20 m analytical NBR/recovery grid, and it uses one shared display treatment
+  for benchmark years 2017, 2018, 2020, 2023, and 2026.
 - `derived/annual/build-status.json` records the latest non-dry-run explicit
   annual batch attempt; it is advisory and does not replace output validation.
 - `derived/diagnostics/` contains local coverage and reflectance-treatment

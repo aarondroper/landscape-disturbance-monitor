@@ -59,9 +59,19 @@ and fixed disturbance objects (milestone 5A):
 python -m landscape_monitor.build_recovery
 ```
 
-`--years` is required and accepts only configured years. Duplicate years are
-sorted and removed. Valid completed years are skipped; missing years are built
-one at a time. Invalid existing outputs stop the batch for inspection.
+Build one explicit browser-oriented natural-color RGB composite (milestone 6C):
+
+```bash
+python -m landscape_monitor.build_rgb_imagery --year 2017
+python -m landscape_monitor.build_rgb_imagery --year 2018
+python -m landscape_monitor.build_rgb_imagery --year 2020
+python -m landscape_monitor.build_rgb_imagery --year 2023
+python -m landscape_monitor.build_rgb_imagery --year 2026
+```
+
+The command requires one explicit benchmark year and builds years sequentially;
+there is no implicit all-years mode. RGB presentation products use a fixed
+10 m grid and the approved `0.01–0.22`, gamma `1.0` display transform.
 
 Run tests and lint checks:
 
@@ -74,8 +84,9 @@ Configuration is in [`config/project.toml`](config/project.toml). Generated
 STAC inventory is written to `data/inventory/`; prototype outputs are written
 to `data/derived/prototype/`, disturbance outputs to
 `data/derived/disturbance/`, milestone-4A annual outputs to
-`data/derived/annual/`, and local recovery analysis to
-`data/derived/recovery/`. Temporary date-level derived products are written
+`data/derived/annual/`, local recovery analysis to `data/derived/recovery/`,
+and RGB presentation products to `data/derived/web-imagery/`. Temporary
+date-level derived products are written
 under `data/.tmp/annual/` and removed after a successful or failed run unless
 explicit diagnostic retention is requested. These reproducible build
 outputs are intentionally excluded from Git; see [`data/README.md`](data/README.md).

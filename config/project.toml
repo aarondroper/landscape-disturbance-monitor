@@ -14,6 +14,12 @@ window_start_day = 1
 window_end_day = 31
 benchmark_years = [2017, 2018, 2020, 2023, 2026]
 
+[visualization]
+resolution_m = 10
+rgb_black_point = 0.01
+rgb_white_point = 0.22
+rgb_gamma = 1.0
+
 [stac]
 endpoint = "https://earth-search.aws.element84.com/v1"
 collection = "sentinel-2-l2a"

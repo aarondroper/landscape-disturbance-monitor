@@ -38,6 +38,8 @@ data/.tmp/**
 
 # Reproducible EO analytical outputs (keep local build products untracked)
 data/derived/**
+# Browser-oriented RGB reflectance masters, COGs, quicklooks, and provenance.
+data/derived/web-imagery/**
 # Coverage and reflectance diagnostic GeoTIFFs, PNGs, and JSON reports are
 # local audit artifacts and must never be staged with production source.
 data/derived/diagnostics/**
