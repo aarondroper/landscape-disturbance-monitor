@@ -25,6 +25,11 @@ loading/error copy, responsive layout adjustments, and accessibility-focused
 keyboard/focus behavior. It remains static and map-first with no backend/API,
 no annual NBR map mode, no new raster products, and no change to the analysis.
 
+The frontend is a static application shell with a split app/COG deployment
+architecture. Production geospatial assets require a range-capable origin;
+see [`docs/deployment.md`](docs/deployment.md) for the deployment model and
+local validation workflow.
+
 ## Setup
 
 Python 3.12 or newer is required. Install the package and development tools in
@@ -147,9 +152,11 @@ npm run typecheck
 npm run build
 ```
 
-The frontend consumes the existing ignored static package at
-`data/derived/web-delivery/`; it does not regenerate analytical or delivery
-data. Milestone 7F polishes the completed three-mode narrative and adds the
+For local development, the frontend consumes the existing ignored static
+package at `data/derived/web-delivery/`; production uses the separate asset
+origin described in [`docs/deployment.md`](docs/deployment.md). It does not
+regenerate analytical or delivery data. Milestone 7F polishes the completed
+three-mode narrative and adds the
 methodology drawer without changing the approved analysis. Milestone 7E added
 the Disturbance mode that directly colorizes the existing
 fixed 2017→2018 dNBR COG in the browser. It does not add annual NBR map views,

@@ -88,7 +88,7 @@ describe("static delivery helpers", () => {
   });
 
   it("constructs base-aware generated asset URLs", () => {
-    expect(assetUrl("imagery/2018/rgb.tif", "https://monitor.example", "/app/")).toBe(
+    expect(assetUrl("imagery/2018/rgb.tif", "/app/", "https://monitor.example")).toBe(
       "https://monitor.example/app/imagery/2018/rgb.tif",
     );
   });

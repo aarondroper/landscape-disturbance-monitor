@@ -40,8 +40,8 @@ describe("recovery map configuration", () => {
   it.each(RECOVERY_YEARS)("generates the direct browser COG path for %s", (year) => {
     vi.stubGlobal("window", { location: { origin: "https://monitor.example" } });
     expect(recoveryPath(year)).toBe(`rasters/recovery/${year}.tif`);
-    expect(recoveryCogUrl(year)).toBe(`https://monitor.example/rasters/recovery/${year}.tif`);
-    expect(recoverySource(year)).toMatchObject({ type: "raster", url: `cog://https://monitor.example/rasters/recovery/${year}.tif`, tileSize: 256 });
+    expect(recoveryCogUrl(year)).toBe(`https://monitor.example/geo/rasters/recovery/${year}.tif`);
+    expect(recoverySource(year)).toMatchObject({ type: "raster", url: `cog://https://monitor.example/geo/rasters/recovery/${year}.tif`, tileSize: 256 });
     expect(recoverySourceId(year)).toBe(`recovery-${year}`);
     expect(recoveryLayer(year).type).toBe("raster");
     vi.unstubAllGlobals();

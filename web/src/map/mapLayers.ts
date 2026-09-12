@@ -4,7 +4,8 @@ import type {
   LineLayerSpecification,
   RasterSourceSpecification,
 } from "maplibre-gl";
-import { AFTER_IMAGERY_YEAR, BEFORE_IMAGERY_YEAR, assetUrl, disturbancePath, imageryPath, recoveryPath } from "../data/loadData";
+import { AFTER_IMAGERY_YEAR, BEFORE_IMAGERY_YEAR, disturbancePath, imageryPath, recoveryPath } from "../data/loadData";
+import { assetUrl } from "../data/assetUrl";
 import type { DisturbanceCollection } from "../data/types";
 
 export const INITIAL_DIVIDER_PERCENT = 50;

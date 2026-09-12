@@ -7,22 +7,15 @@ import type {
   DisturbanceTimeseriesPackage,
   SummaryData,
 } from "./types";
+import { assetUrl } from "./assetUrl";
+
+export { assetUrl } from "./assetUrl";
 
 export const BEFORE_IMAGERY_YEAR = 2017;
 export const AFTER_IMAGERY_YEAR = 2018;
 export const SUPPORTED_IMAGERY_YEARS = [BEFORE_IMAGERY_YEAR, AFTER_IMAGERY_YEAR] as const;
 export const RECOVERY_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
 export type RecoveryYear = (typeof RECOVERY_YEARS)[number];
-
-export function assetUrl(
-  path: string,
-  origin = window.location.origin,
-  basePath = import.meta.env.BASE_URL,
-): string {
-  const cleanPath = path.replace(/^\/+/, "");
-  const cleanBase = basePath.endsWith("/") ? basePath : `${basePath}/`;
-  return new URL(`${cleanBase}${cleanPath}`, origin).toString();
-}
 
 export function imageryPath(year: number = AFTER_IMAGERY_YEAR): string {
   if (!SUPPORTED_IMAGERY_YEARS.includes(year as (typeof SUPPORTED_IMAGERY_YEARS)[number])) {

@@ -23,12 +23,12 @@ describe("comparison map configuration", () => {
     vi.stubGlobal("window", { location: { origin: "https://monitor.example" } });
     expect(imagerySource(2017)).toMatchObject({
       type: "raster",
-      url: "cog://https://monitor.example/imagery/2017/rgb.tif",
+      url: "cog://https://monitor.example/geo/imagery/2017/rgb.tif",
       tileSize: 256,
     });
     expect(imagerySource(2018)).toMatchObject({
       type: "raster",
-      url: "cog://https://monitor.example/imagery/2018/rgb.tif",
+      url: "cog://https://monitor.example/geo/imagery/2018/rgb.tif",
       tileSize: 256,
     });
     expect(imagerySourceId(2017)).toBe("rgb-2017");
@@ -65,10 +65,10 @@ describe("comparison map configuration", () => {
 describe("fixed spectral-change map configuration", () => {
   it("loads exactly one fixed dNBR browser COG with origin-aware URL construction", () => {
     vi.stubGlobal("window", { location: { origin: "https://monitor.example" } });
-    expect(disturbanceCogUrl()).toBe("https://monitor.example/rasters/change/dnbr-2017-2018.tif");
+    expect(disturbanceCogUrl()).toBe("https://monitor.example/geo/rasters/change/dnbr-2017-2018.tif");
     expect(dnbrSource()).toMatchObject({
       type: "raster",
-      url: "cog://https://monitor.example/rasters/change/dnbr-2017-2018.tif",
+      url: "cog://https://monitor.example/geo/rasters/change/dnbr-2017-2018.tif",
       tileSize: 256,
     });
     expect(disturbanceRasterLayer()).toMatchObject({ id: DISTURBANCE_RASTER_LAYER_ID, source: DISTURBANCE_RASTER_SOURCE_ID, type: "raster" });
