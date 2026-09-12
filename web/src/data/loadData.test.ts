@@ -6,6 +6,7 @@ import {
   coverageDisplay,
   coverageLabel,
   createDisturbanceSeriesLookup,
+  disturbancePath,
   formatSpectralRecovery,
   imageryPath,
   loadDisturbanceTimeseries,
@@ -150,5 +151,9 @@ describe("static delivery helpers", () => {
     expect(imageryPath(2018)).toBe("imagery/2018/rgb.tif");
     expect(imageryPath()).toBe("imagery/2018/rgb.tif");
     expect(() => imageryPath(2020)).toThrow();
+  });
+
+  it("supports only the fixed 2017–2018 spectral-change path", () => {
+    expect(disturbancePath()).toBe("rasters/change/dnbr-2017-2018.tif");
   });
 });

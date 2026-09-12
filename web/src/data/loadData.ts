@@ -38,6 +38,10 @@ export function recoveryPath(year: number): string {
   return `rasters/recovery/${year}.tif`;
 }
 
+export function disturbancePath(): string {
+  return "rasters/change/dnbr-2017-2018.tif";
+}
+
 async function fetchJson(path: string): Promise<unknown> {
   const response = await fetch(assetUrl(path));
   if (!response.ok) throw new Error(`Could not load ${path} (HTTP ${response.status}).`);

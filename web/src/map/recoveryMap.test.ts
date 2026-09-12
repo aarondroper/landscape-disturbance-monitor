@@ -4,7 +4,7 @@ import { isMappedTimelineYear } from "../data/timeline";
 import type { DisturbanceSeries } from "../data/types";
 import { cameraSnapshotOf, sameCameraSnapshot, type CameraSnapshot } from "./camera";
 import { recoveryCogUrl, recoveryLayer, recoverySource, recoverySourceId } from "./mapLayers";
-import { DEFAULT_MAP_MODE, DEFAULT_RECOVERY_YEAR } from "./viewMode";
+import { DEFAULT_MAP_MODE, DEFAULT_RECOVERY_YEAR, MAP_VIEW_MODES, type MapViewMode } from "./viewMode";
 
 const series: DisturbanceSeries = {
   area_ha: 1,
@@ -23,6 +23,11 @@ const series: DisturbanceSeries = {
 };
 
 describe("recovery map configuration", () => {
+  it("supports exactly Compare, Disturbance, and Recovery modes", () => {
+    const modes: MapViewMode[] = [...MAP_VIEW_MODES];
+    expect(modes).toEqual(["compare", "disturbance", "recovery"]);
+  });
+
   it("defaults to Compare and recovery year 2026", () => {
     expect(DEFAULT_MAP_MODE).toBe("compare");
     expect(DEFAULT_RECOVERY_YEAR).toBe(2026);

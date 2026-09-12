@@ -1,5 +1,5 @@
 import type { SummaryData } from "../data/types";
-import type { MapViewMode } from "../map/viewMode";
+import { MAP_VIEW_MODES, type MapViewMode } from "../map/viewMode";
 
 interface AppHeaderProps {
   summary?: SummaryData;
@@ -22,7 +22,7 @@ export function AppHeader({ summary, summaryError, mode, onModeChange }: AppHead
       <div className="descriptor">Sentinel-2 disturbance &amp; spectral recovery</div>
       <div className="project-summary">{projectSummary}</div>
       <div className="mode-switch" role="tablist" aria-label="Map view">
-        {(["compare", "recovery"] as const).map((option) => (
+        {MAP_VIEW_MODES.map((option) => (
           <button
             key={option}
             type="button"
@@ -31,7 +31,7 @@ export function AppHeader({ summary, summaryError, mode, onModeChange }: AppHead
             className={mode === option ? "mode-switch__button mode-switch__button--active" : "mode-switch__button"}
             onClick={() => onModeChange(option)}
           >
-            {option === "compare" ? "Compare" : "Recovery"}
+            {option === "compare" ? "Compare" : option === "disturbance" ? "Disturbance" : "Recovery"}
           </button>
         ))}
       </div>

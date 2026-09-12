@@ -5,6 +5,7 @@ import { AppHeader } from "./components/AppHeader";
 import { DisturbanceDetails } from "./components/DisturbanceDetails";
 import { LandscapeCompareMap } from "./map/LandscapeCompareMap";
 import { RecoveryMap } from "./map/RecoveryMap";
+import { DisturbanceMap } from "./map/DisturbanceMap";
 import type { CameraSnapshot } from "./map/camera";
 import { DEFAULT_MAP_MODE, DEFAULT_RECOVERY_YEAR } from "./map/viewMode";
 import type { MapViewMode } from "./map/viewMode";
@@ -49,6 +50,15 @@ export default function App() {
       {disturbances ? (
         mapMode === "compare" ? (
           <LandscapeCompareMap
+            disturbances={disturbances}
+            selectedId={selected?.disturbance_id}
+            initialCamera={camera}
+            onSelect={handleSelect}
+            onError={handleMapError}
+            onCameraChange={handleCameraChange}
+          />
+        ) : mapMode === "disturbance" ? (
+          <DisturbanceMap
             disturbances={disturbances}
             selectedId={selected?.disturbance_id}
             initialCamera={camera}

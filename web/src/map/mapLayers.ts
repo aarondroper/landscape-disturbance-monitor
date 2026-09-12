@@ -4,7 +4,7 @@ import type {
   LineLayerSpecification,
   RasterSourceSpecification,
 } from "maplibre-gl";
-import { AFTER_IMAGERY_YEAR, BEFORE_IMAGERY_YEAR, assetUrl, imageryPath, recoveryPath } from "../data/loadData";
+import { AFTER_IMAGERY_YEAR, BEFORE_IMAGERY_YEAR, assetUrl, disturbancePath, imageryPath, recoveryPath } from "../data/loadData";
 import type { DisturbanceCollection } from "../data/types";
 
 export const INITIAL_DIVIDER_PERCENT = 50;
@@ -13,6 +13,8 @@ export const DISTURBANCE_FILL_LAYER_ID = "disturbance-fill";
 export const DISTURBANCE_OUTLINE_LAYER_ID = "disturbance-outline";
 export const RECOVERY_BACKGROUND_SOURCE_ID = "recovery-reference-2018";
 export const RECOVERY_BACKGROUND_LAYER_ID = "recovery-reference-2018-layer";
+export const DISTURBANCE_RASTER_SOURCE_ID = "dnbr-2017-2018";
+export const DISTURBANCE_RASTER_LAYER_ID = "dnbr-2017-2018-layer";
 
 export const comparisonLabels = {
   before: { year: BEFORE_IMAGERY_YEAR, descriptor: "PRE-DISTURBANCE" },
@@ -48,6 +50,36 @@ export function recoverySource(year: number): RasterSourceSpecification {
     type: "raster",
     url: `cog://${recoveryCogUrl(year)}`,
     tileSize: 256,
+  };
+}
+
+export function disturbanceCogUrl(): string {
+  return assetUrl(disturbancePath());
+}
+
+export function dnbrSource(): RasterSourceSpecification {
+  return {
+    type: "raster",
+    url: `cog://${disturbanceCogUrl()}`,
+    tileSize: 256,
+  };
+}
+
+export function disturbanceRasterLayer() {
+  return {
+    id: DISTURBANCE_RASTER_LAYER_ID,
+    source: DISTURBANCE_RASTER_SOURCE_ID,
+    type: "raster" as const,
+    paint: { "raster-opacity": 0.92, "raster-fade-duration": 0 },
+  };
+}
+
+export function disturbanceBackgroundLayer() {
+  return {
+    id: "disturbance-reference-2018-layer",
+    source: "disturbance-reference-2018",
+    type: "raster" as const,
+    paint: { "raster-opacity": 0.38, "raster-fade-duration": 0 },
   };
 }
 

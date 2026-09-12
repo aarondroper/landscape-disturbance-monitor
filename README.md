@@ -8,11 +8,12 @@ Sentinel-2 STAC and remote COG feasibility, builds August 2017/2018 prototype
 products, detects and filters the fixed disturbance objects, and validates
 memory-bounded annual Sentinel-2 NBR/NDVI composites for the complete
 2017–2026 series. NBR is the primary spectral-recovery indicator, with NDVI
-retained as contextual information. The milestone-7D frontend is implemented
+retained as contextual information. The milestone-7E frontend is implemented
 under `web/`: a local, map-first React application showing a synchronized
-2017↔2018 RGB browser-COG swipe, an annual spectral-recovery COG map,
-disturbance polygons, selected browser properties, and the approved trajectory
-chart. NBR and dNBR map layers remain outside the frontend scope.
+2017↔2018 RGB browser-COG swipe, a fixed 2017→2018 dNBR spectral-change map,
+an annual spectral-recovery COG map, disturbance polygons, selected browser
+properties, and the approved trajectory chart. Annual NBR map viewing remains
+outside the frontend scope.
 
 ## Setup
 
@@ -117,7 +118,7 @@ internal mask and colorization is deferred to the frontend. It does not build
 frontend code or access STAC or remote EO resources. See
 [`docs/web-raster-delivery.md`](docs/web-raster-delivery.md).
 
-Run the milestone-7D frontend locally (requires Node.js 24+ for the comparison
+Run the milestone-7E frontend locally (requires Node.js 24+ for the comparison
 package):
 
 ```bash
@@ -138,9 +139,9 @@ npm run build
 
 The frontend consumes the existing ignored static package at
 `data/derived/web-delivery/`; it does not regenerate analytical or delivery
-data. Milestone 7D adds a Recovery mode that directly colorizes the existing
-annual spectral-recovery COGs in the browser. It does not add NBR or dNBR map
-layers, change the fixed 2017-before / 2018-after swipe, or add a backend/API.
+data. Milestone 7E adds a Disturbance mode that directly colorizes the existing
+fixed 2017→2018 dNBR COG in the browser. It does not add annual NBR map views,
+change the fixed 2017-before / 2018-after swipe, or add a backend/API.
 See
 [`docs/frontend.md`](docs/frontend.md).
 

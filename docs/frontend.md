@@ -7,7 +7,11 @@ existing generated package at `data/derived/web-delivery/` as its static
 separate.
 
 The map uses a local MapLibre style with no remote basemap or API key. The
-top-level view control has two modes: `Compare` (the default) and `Recovery`.
+top-level view control has three modes: `Compare` (the default), `Disturbance`,
+and `Recovery`. Together they provide a compact narrative: Compare shows the
+visual before/after, Disturbance shows the spatial magnitude of the fixed
+2017→2018 spectral change, and Recovery shows the subsequent annual spectral
+trajectory.
 Compare remains the vertical two-map `@geoql/maplibre-gl-compare` 0.0.4 view:
 the before map shows the 2017 browser RGB COG and the after map shows the 2018
 browser RGB COG. Both are registered through
@@ -24,6 +28,27 @@ outline, hover state, and selected state are configured identically on both
 maps and interactions update both instances from one React selection state.
 The browser performs no analytical calculations; it reads the approved static
 time-series package and recovery COGs directly.
+
+The `Disturbance` mode uses one separate `DisturbanceMap` MapLibre instance. It
+loads the existing fixed dNBR browser COG from
+`/rasters/change/dnbr-2017-2018.tif` through a `cog://` raster source with
+256-pixel tiles. The raw single-band float32 values are preserved; a custom
+client-side color function only changes display color and alpha. The display
+stops are `#466f6b` at ≤−0.4, `#d8d4c6` at 0, `#d3ad62` at 0.30,
+`#a76545` at 0.60, and `#6b3d30` at ≥1.0. Display alpha is quiet at 88 near
+and below zero, 166 at 0.30, 220 at 0.60, and 228 at the upper endpoint,
+with interpolation between these reference levels. Values outside the display
+range use endpoint colors only; no analytical clamping or normalization is
+performed. The COG's internal mask remains transparent.
+
+The Disturbance legend identifies dNBR = 0.30 as a detection-threshold
+component and explicitly notes that detected disturbance also required
+`NBR2017 > 0.30`. dNBR is `NBR2017 − NBR2018` and represents spectral change,
+not an authoritative burn-severity product. Disturbance has no year slider,
+does not reuse Recovery's annual coverage widget, and leaves the complete
+2017–2026 selected-object timeline visible without a selected-year highlight.
+Its fixed 2018 RGB COG is shown beneath the thematic layer at 0.38 opacity as
+restrained spatial context and is labeled `2018 reference imagery`.
 
 The `Recovery` mode uses one separate `RecoveryMap` MapLibre instance. It shares
 the study-area fit bounds, disturbance source, promoted IDs, hover/selection
@@ -90,8 +115,8 @@ npm run build
 ```
 
 Current functionality: 2017↔2018 RGB before/after swipe comparison, Compare /
-Recovery map modes, annual spectral-recovery COG switching, shared camera
+Disturbance / Recovery map modes, fixed 2017→2018 dNBR display, annual spectral-recovery COG switching, shared camera
 navigation, fixed imagery-state labels, mirrored disturbance hover and
 selection, the approved summary panel, and the selected-disturbance NBR and
-spectral-recovery timeline. There is no NBR or dNBR map layer, generic layer
+spectral-recovery timeline. There is no annual NBR map view, generic layer
 control, raster-pixel inspector, year animation, NDVI chart, or backend/API.
