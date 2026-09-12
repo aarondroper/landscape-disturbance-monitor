@@ -88,8 +88,10 @@ describe("static delivery helpers", () => {
     expect(coverageDisplay("POOR", false)).toEqual({ label: "Poor coverage", warning: true });
   });
 
-  it("supports the approved 2018 imagery path only in this milestone", () => {
+  it("supports only the approved before and after imagery paths", () => {
+    expect(imageryPath(2017)).toBe("imagery/2017/rgb.tif");
+    expect(imageryPath(2018)).toBe("imagery/2018/rgb.tif");
     expect(imageryPath()).toBe("imagery/2018/rgb.tif");
-    expect(() => imageryPath(2017)).toThrow();
+    expect(() => imageryPath(2020)).toThrow();
   });
 });

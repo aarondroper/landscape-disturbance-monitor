@@ -8,9 +8,11 @@ Sentinel-2 STAC and remote COG feasibility, builds August 2017/2018 prototype
 products, detects and filters the fixed disturbance objects, and validates
 memory-bounded annual Sentinel-2 NBR/NDVI composites for the complete
 2017–2026 series. NBR is the primary spectral-recovery indicator, with NDVI
-retained as contextual information. The milestone-7A frontend foundation is
-implemented under `web/`: a local, map-first React application showing the
-2018 RGB browser COG, disturbance polygons, and selected browser properties.
+retained as contextual information. The milestone-7A/7B frontend is
+implemented under `web/`: a local, map-first React application showing a
+synchronized 2017↔2018 RGB browser-COG swipe, disturbance polygons, and
+selected browser properties. Analytical layers and recovery charts remain
+outside the frontend scope.
 
 ## Setup
 
@@ -115,7 +117,8 @@ internal mask and colorization is deferred to the frontend. It does not build
 frontend code or access STAC or remote EO resources. See
 [`docs/web-raster-delivery.md`](docs/web-raster-delivery.md).
 
-Run the milestone-7A frontend locally (requires Node.js 20.19+):
+Run the milestone-7B frontend locally (requires Node.js 24+ for the comparison
+package):
 
 ```bash
 cd web
@@ -135,8 +138,9 @@ npm run build
 
 The frontend consumes the existing ignored static package at
 `data/derived/web-delivery/`; it does not regenerate analytical or delivery
-data. Milestone 7A is 2018-only: year switching, swipe comparison, analytical
-layers, and recovery charts are intentionally not implemented. See
+data. Milestone 7B adds only the fixed 2017-before / 2018-after swipe
+comparison; there is no year switching, analytical layer, or recovery chart.
+See
 [`docs/frontend.md`](docs/frontend.md).
 
 Run tests and lint checks:

@@ -3,7 +3,7 @@ import { loadDisturbances, loadSummary } from "./data/loadData";
 import type { DisturbanceCollection, DisturbanceProperties, SummaryData } from "./data/types";
 import { AppHeader } from "./components/AppHeader";
 import { DisturbanceDetails } from "./components/DisturbanceDetails";
-import { LandscapeMap } from "./map/LandscapeMap";
+import { LandscapeCompareMap } from "./map/LandscapeCompareMap";
 
 export default function App() {
   const [disturbances, setDisturbances] = useState<DisturbanceCollection>();
@@ -25,12 +25,8 @@ export default function App() {
   return (
     <main className="app-shell">
       <AppHeader summary={summary} summaryError={summaryError} />
-      <div className="imagery-state" aria-label="Current imagery">
-        <span className="state-year">2018</span>
-        <span className="state-label">Post-disturbance</span>
-      </div>
       {disturbances ? (
-        <LandscapeMap disturbances={disturbances} onSelect={setSelected} onError={setMapError} />
+        <LandscapeCompareMap disturbances={disturbances} onSelect={setSelected} onError={setMapError} />
       ) : (
         <div className="map-placeholder" role="status">{dataError ?? "Loading disturbance landscape…"}</div>
       )}

@@ -16,10 +16,14 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid #825f36; out
 
 .app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; background: #d9d2c5; }
 
-.map-canvas, .map-placeholder { position: absolute; inset: 0; }
+.comparison-map, .map-placeholder { position: absolute; inset: 0; overflow: hidden; }
 .map-placeholder { display: grid; place-items: center; color: #5d5a50; font-size: 0.95rem; letter-spacing: 0.02em; }
 
-.app-header, .details-panel, .imagery-state, .runtime-notice {
+.comparison-map-pane { position: absolute; inset: 0; width: 100%; height: 100%; }
+.comparison-map-pane--before { z-index: 1; }
+.comparison-map-pane--after { z-index: 2; }
+
+.app-header, .details-panel, .imagery-label, .imagery-loading, .runtime-notice {
   position: absolute;
   z-index: 2;
   background: rgba(247, 243, 235, 0.95);
@@ -33,9 +37,12 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid #825f36; out
 .descriptor { margin-top: 13px; color: #77705f; font-size: 0.67rem; letter-spacing: 0.1em; text-transform: uppercase; }
 .project-summary { margin-top: 9px; border-top: 1px solid rgba(67, 63, 52, 0.14); padding-top: 9px; color: #4f5545; font-size: 0.79rem; }
 
-.imagery-state { top: 18px; right: 20px; display: flex; align-items: baseline; gap: 10px; padding: 10px 13px; }
-.state-year { color: #30372c; font-size: 0.89rem; font-weight: 700; }
-.state-label { color: #65695d; font-size: 0.73rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.imagery-label { z-index: 5; display: flex; flex-direction: column; gap: 1px; min-width: 132px; padding: 7px 10px 8px; pointer-events: none; }
+.imagery-label--before { top: 142px; left: 20px; }
+.imagery-label--after { top: 18px; right: 20px; text-align: right; }
+.imagery-label span { color: #30372c; font-size: 1.02rem; font-weight: 720; line-height: 1; }
+.imagery-label small { color: #65695d; font-size: 0.62rem; letter-spacing: 0.1em; line-height: 1.25; }
+.imagery-loading { top: 18px; left: 50%; z-index: 6; transform: translateX(-50%); padding: 7px 10px; color: #6a675d; font-size: 0.73rem; pointer-events: none; }
 
 .details-panel { top: 78px; right: 20px; width: min(302px, calc(100vw - 40px)); padding: 18px; }
 .details-panel--quiet { padding: 19px; }
@@ -61,10 +68,18 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid #825f36; out
 .maplibregl-ctrl-group { border: 1px solid rgba(67, 63, 52, 0.2) !important; border-radius: 2px !important; box-shadow: 0 4px 12px rgba(55, 49, 37, 0.08) !important; }
 .maplibregl-ctrl-group button { background-color: rgba(247, 243, 235, 0.92) !important; }
 .maplibregl-ctrl-scale { margin: 0 0 18px 20px !important; border-color: #5c5c51 !important; color: #4c4d43 !important; background: rgba(247, 243, 235, 0.78) !important; font-size: 0.65rem !important; }
+.maplibregl-ctrl-top-right .maplibregl-ctrl { margin: 18px 20px 0 0 !important; }
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin: 0 20px 18px 0 !important; }
+.maplibregl-compare { z-index: 4 !important; }
+.maplibregl-compare .compare-swiper-vertical { width: 24px; height: 24px; border: 1px solid rgba(67, 63, 52, 0.42); background: #f7f3eb; box-shadow: 0 2px 8px rgba(55, 49, 37, 0.2); color: #534b3c; font-size: 0.8rem; font-weight: 700; }
 
 @media (max-width: 720px) {
   .app-header { top: 12px; left: 12px; width: calc(100vw - 24px); }
-  .imagery-state { top: auto; right: 12px; bottom: 16px; }
+  .imagery-label--before { top: 142px; left: 12px; }
+  .imagery-label--after { top: 142px; right: 12px; }
+  .imagery-loading { top: 204px; }
   .details-panel { top: auto; right: 12px; bottom: 68px; width: min(310px, calc(100vw - 24px)); max-height: calc(100vh - 190px); overflow: auto; }
   .maplibregl-ctrl-scale { margin-left: 12px !important; }
+  .maplibregl-ctrl-top-right .maplibregl-ctrl { margin-right: 12px !important; }
+  .maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin-right: 12px !important; }
 }

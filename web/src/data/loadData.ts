@@ -1,6 +1,8 @@
 import type { Coordinate, CoverageStatus, DisturbanceCollection, SummaryData } from "./types";
 
-export const SUPPORTED_IMAGERY_YEAR = 2018;
+export const BEFORE_IMAGERY_YEAR = 2017;
+export const AFTER_IMAGERY_YEAR = 2018;
+export const SUPPORTED_IMAGERY_YEARS = [BEFORE_IMAGERY_YEAR, AFTER_IMAGERY_YEAR] as const;
 
 export function assetUrl(
   path: string,
@@ -12,9 +14,9 @@ export function assetUrl(
   return new URL(`${cleanBase}${cleanPath}`, origin).toString();
 }
 
-export function imageryPath(year: number = SUPPORTED_IMAGERY_YEAR): string {
-  if (year !== SUPPORTED_IMAGERY_YEAR) {
-    throw new Error(`Only ${SUPPORTED_IMAGERY_YEAR} imagery is supported in milestone 7A.`);
+export function imageryPath(year: number = AFTER_IMAGERY_YEAR): string {
+  if (!SUPPORTED_IMAGERY_YEARS.includes(year as (typeof SUPPORTED_IMAGERY_YEARS)[number])) {
+    throw new Error("Only 2017 and 2018 RGB imagery are supported in milestone 7B.");
   }
   return `imagery/${year}/rgb.tif`;
 }
