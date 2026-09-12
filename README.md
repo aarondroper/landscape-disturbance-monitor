@@ -133,6 +133,11 @@ notes in [`docs/`](docs/).
 
 ## Testing
 
+The full contract suites exercise generated package relationships and require
+the locally built products under `data/derived/`. A clean clone can install,
+lint, typecheck, and build the source, but the data-dependent tests require
+the reproduction workflow above first.
+
 ```bash
 pytest
 ruff check .
