@@ -1,4 +1,12 @@
-import type { Coordinate, CoverageStatus, DisturbanceCollection, SummaryData } from "./types";
+import type {
+  AnnualObservation,
+  Coordinate,
+  CoverageStatus,
+  DisturbanceCollection,
+  DisturbanceSeriesLookup,
+  DisturbanceTimeseriesPackage,
+  SummaryData,
+} from "./types";
 
 export const BEFORE_IMAGERY_YEAR = 2017;
 export const AFTER_IMAGERY_YEAR = 2018;
@@ -35,12 +43,25 @@ export async function loadDisturbances(): Promise<DisturbanceCollection> {
   return parseDisturbanceCollection(await fetchJson("data/disturbances.geojson"));
 }
 
+let disturbanceTimeseriesPromise: Promise<DisturbanceSeriesLookup> | undefined;
+
+export function loadDisturbanceTimeseries(): Promise<DisturbanceSeriesLookup> {
+  disturbanceTimeseriesPromise ??= fetchJson("data/disturbance-timeseries.json")
+    .then(parseDisturbanceTimeseries)
+    .then(createDisturbanceSeriesLookup);
+  return disturbanceTimeseriesPromise;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function isNullableFiniteNumber(value: unknown): value is number | null {
+  return value === null || isFiniteNumber(value);
 }
 
 const coverageStatuses: CoverageStatus[] = ["GOOD", "USABLE_WITH_COVERAGE_FLAG", "POOR"];
@@ -103,6 +124,65 @@ export function parseDisturbanceCollection(value: unknown): DisturbanceCollectio
     }
   }
   return value as unknown as DisturbanceCollection;
+}
+
+export function parseDisturbanceTimeseries(value: unknown): DisturbanceTimeseriesPackage {
+  if (
+    !isRecord(value) ||
+    !isFiniteNumber(value.schema_version) ||
+    !Array.isArray(value.years) ||
+    !isRecord(value.coverage_thresholds) ||
+    !isRecord(value.disturbances)
+  ) {
+    throw new Error("Time-series data has an invalid package structure.");
+  }
+
+  if (
+    value.years.some((year) => !Number.isInteger(year)) ||
+    value.years.length === 0 ||
+    !isFiniteNumber(value.coverage_thresholds.good_min) ||
+    !isFiniteNumber(value.coverage_thresholds.usable_min)
+  ) {
+    throw new Error("Time-series data has invalid years or coverage thresholds.");
+  }
+
+  const years = value.years as number[];
+  for (const [disturbanceId, rawSeries] of Object.entries(value.disturbances)) {
+    if (!isRecord(rawSeries) || !isFiniteNumber(rawSeries.area_ha) || !Array.isArray(rawSeries.series)) {
+      throw new Error(`Time-series record ${disturbanceId} is invalid.`);
+    }
+    if (rawSeries.series.length !== years.length) {
+      throw new Error(`Time-series record ${disturbanceId} does not contain one observation per year.`);
+    }
+    rawSeries.series.forEach((rawObservation, index) => {
+      if (!isAnnualObservation(rawObservation) || rawObservation.year !== years[index]) {
+        throw new Error(`Time-series record ${disturbanceId} has invalid year ${String(rawObservation)}.`);
+      }
+    });
+  }
+  return value as unknown as DisturbanceTimeseriesPackage;
+}
+
+function isAnnualObservation(value: unknown): value is AnnualObservation {
+  return (
+    isRecord(value) &&
+    Number.isInteger(value.year) &&
+    isNullableFiniteNumber(value.nbr_median) &&
+    isNullableFiniteNumber(value.recovery_median) &&
+    isNullableFiniteNumber(value.recovery_p10) &&
+    isNullableFiniteNumber(value.recovery_p90) &&
+    isFiniteNumber(value.nbr_valid_fraction) &&
+    isCoverageStatus(value.coverage_status) &&
+    typeof value.reporting_recommended === "boolean" &&
+    isNullableFiniteNumber(value.ndvi_median) &&
+    isFiniteNumber(value.ndvi_valid_fraction)
+  );
+}
+
+export function createDisturbanceSeriesLookup(
+  packageData: DisturbanceTimeseriesPackage,
+): DisturbanceSeriesLookup {
+  return { ...packageData.disturbances };
 }
 
 export function calculateBounds(collection: DisturbanceCollection): [number, number, number, number] {

@@ -24,11 +24,25 @@ maps and interactions update both instances from one React selection state.
 The browser performs no analytical calculations and does not load analytical
 NBR, recovery, dNBR, or time-series layers.
 
-The application loads `/data/summary.json` and
-`/data/disturbances.geojson`, fits the map to the GeoJSON WGS84 extent, and
-supports hover and single-feature selection with MapLibre feature state. The
-selected panel shows only the approved browser properties and keeps coverage
-status and limited-imagery warnings visible.
+The application loads `/data/summary.json`, `/data/disturbances.geojson`, and
+`/data/disturbance-timeseries.json` once at startup. The time-series package is
+parsed into an in-memory lookup keyed by `disturbance_id`; selection only reads
+from that lookup and does not recreate the maps or refetch the package. The
+selected panel preserves its summary values, then adds a compact SVG timeline
+with separate NBR and spectral-recovery plots sharing discrete annual
+positions from 2017 through 2026.
+
+The recovery plot shows the median plus a restrained P10–P90 pixel range. Its
+reference levels are 0 (post-disturbance baseline) and 1 (2017 baseline).
+Recovery is unbounded, so negative values and values above 1 remain visible.
+There is no interpolation or smoothing. GOOD and
+USABLE_WITH_COVERAGE_FLAG observations may join the primary trajectory;
+POOR observations remain as muted/hollow points and ranges but break the
+trusted line. Missing/null observations are not converted to zero and also
+break the line. Coverage labels remain “Good coverage”, “Partial coverage”,
+and “Poor coverage”; poor years additionally identify limited valid imagery.
+NDVI remains available as contextual data in the typed contract but is not
+charted in this milestone.
 
 Run locally:
 
@@ -49,5 +63,6 @@ npm run build
 
 Current functionality: 2017↔2018 RGB before/after swipe comparison, shared
 camera navigation, fixed imagery-state labels, mirrored disturbance hover and
-selection, and the approved milestone-7A details panel. There is no year
-switch, analytical raster layer, full time-series panel, or recovery chart.
+selection, the approved summary panel, and the selected-disturbance NBR and
+spectral-recovery timeline. There is no year switch, analytical raster layer,
+layer control, NDVI chart, or backend/API.

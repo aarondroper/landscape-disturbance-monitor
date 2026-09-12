@@ -1,15 +1,19 @@
 import { coverageDisplay, formatSpectralRecovery } from "../data/loadData";
-import type { DisturbanceProperties } from "../data/types";
+import type { DisturbanceProperties, DisturbanceSeries } from "../data/types";
+import { RecoveryTimeline } from "./RecoveryTimeline";
 
 interface DisturbanceDetailsProps {
   disturbance?: DisturbanceProperties;
+  series?: DisturbanceSeries;
+  timeseriesStatus: "loading" | "ready" | "error";
+  timeseriesError?: string;
 }
 
 function value(value: number, digits = 2): string {
   return value.toFixed(digits);
 }
 
-export function DisturbanceDetails({ disturbance }: DisturbanceDetailsProps) {
+export function DisturbanceDetails({ disturbance, series, timeseriesStatus, timeseriesError }: DisturbanceDetailsProps) {
   if (!disturbance) {
     return (
       <aside className="details-panel details-panel--quiet" aria-label="Disturbance details">
@@ -45,6 +49,14 @@ export function DisturbanceDetails({ disturbance }: DisturbanceDetailsProps) {
       {coverage.warning && (
         <p className="coverage-warning" role="status">Limited valid imagery for this year.</p>
       )}
+      <div className="timeline-section">
+        {timeseriesStatus === "loading" && <p className="timeline-message" role="status">Loading annual trajectory…</p>}
+        {timeseriesStatus === "error" && <p className="timeline-message" role="status">{timeseriesError ?? "Annual trajectory could not be loaded."}</p>}
+        {timeseriesStatus === "ready" && series && <RecoveryTimeline series={series} />}
+        {timeseriesStatus === "ready" && !series && (
+          <p className="timeline-message" role="status">No annual trajectory is available for this selection.</p>
+        )}
+      </div>
     </aside>
   );
 }

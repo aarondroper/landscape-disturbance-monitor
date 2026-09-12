@@ -1,12 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { describe, expect, it, vi } from "vitest";
 import {
   assetUrl,
   calculateBounds,
   coverageDisplay,
   coverageLabel,
+  createDisturbanceSeriesLookup,
   formatSpectralRecovery,
   imageryPath,
+  loadDisturbanceTimeseries,
   parseDisturbanceCollection,
+  parseDisturbanceTimeseries,
   parseSummary,
 } from "./loadData";
 import type { DisturbanceCollection } from "./types";
@@ -29,6 +33,59 @@ const feature = (id: string, coordinates: number[][][]): DisturbanceCollection["
 });
 
 describe("static delivery helpers", () => {
+  it("loads the time-series package once and returns an in-memory lookup", async () => {
+    vi.stubGlobal("window", { location: { origin: "https://monitor.example" } });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schema_version: 1,
+        years: [2017],
+        coverage_thresholds: { good_min: 0.95, usable_min: 0.8 },
+        disturbances: {
+          "disturbance-001": {
+            area_ha: 1,
+            series: [{
+              year: 2017,
+              nbr_median: 0.6,
+              recovery_median: 1,
+              recovery_p10: 1,
+              recovery_p90: 1,
+              nbr_valid_fraction: 1,
+              coverage_status: "GOOD",
+              reporting_recommended: true,
+              ndvi_median: 0.7,
+              ndvi_valid_fraction: 1,
+            }],
+          },
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const first = await loadDisturbanceTimeseries();
+    const second = await loadDisturbanceTimeseries();
+    expect(first).toBe(second);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(first["disturbance-001"].series[0].year).toBe(2017);
+    vi.unstubAllGlobals();
+  });
+
+  it("parses the generated 80-record time-series package into an ID lookup", () => {
+    const generated = JSON.parse(readFileSync(new URL("../../../data/derived/web-delivery/data/disturbance-timeseries.json", import.meta.url), "utf8")) as unknown;
+    const packageData = parseDisturbanceTimeseries(generated);
+    const lookup = createDisturbanceSeriesLookup(packageData);
+    const geography = parseDisturbanceCollection(JSON.parse(readFileSync(new URL("../../../data/derived/web-delivery/data/disturbances.geojson", import.meta.url), "utf8")) as unknown);
+    expect(Object.keys(lookup)).toHaveLength(80);
+    expect(Object.keys(lookup).sort()).toEqual(geography.features.map((feature) => feature.properties.disturbance_id).sort());
+    expect(lookup["disturbance-001"].series.map((observation) => observation.year)).toEqual([
+      2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026,
+    ]);
+    expect(lookup["disturbance-001"].series[9].recovery_median).toBeGreaterThan(1);
+    expect(lookup["disturbance-001"].series[2].recovery_median).toBeLessThan(0);
+    expect(lookup["disturbance-076"].series[5].recovery_median).toBeNull();
+    expect(lookup["disturbance-004"].series.slice(5).every((observation) => observation.coverage_status === "POOR")).toBe(true);
+    expect("ndvi_recovery" in lookup["disturbance-001"].series[0]).toBe(false);
+  });
+
   it("constructs base-aware generated asset URLs", () => {
     expect(assetUrl("imagery/2018/rgb.tif", "https://monitor.example", "/app/")).toBe(
       "https://monitor.example/app/imagery/2018/rgb.tif",

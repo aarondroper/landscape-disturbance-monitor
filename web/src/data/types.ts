@@ -31,6 +31,36 @@ export interface DisturbanceCollection {
 
 export type CoverageStatus = "GOOD" | "USABLE_WITH_COVERAGE_FLAG" | "POOR";
 
+export interface AnnualObservation {
+  year: number;
+  nbr_median: number | null;
+  recovery_median: number | null;
+  recovery_p10: number | null;
+  recovery_p90: number | null;
+  nbr_valid_fraction: number;
+  coverage_status: CoverageStatus;
+  reporting_recommended: boolean;
+  ndvi_median: number | null;
+  ndvi_valid_fraction: number;
+}
+
+export interface DisturbanceSeries {
+  area_ha: number;
+  series: AnnualObservation[];
+}
+
+export interface DisturbanceTimeseriesPackage {
+  schema_version: number;
+  years: number[];
+  coverage_thresholds: {
+    good_min: number;
+    usable_min: number;
+  };
+  disturbances: Record<string, DisturbanceSeries>;
+}
+
+export type DisturbanceSeriesLookup = Record<string, DisturbanceSeries>;
+
 export interface SummaryProject {
   case_study_identifier: string;
   case_study_name: string;
