@@ -1,6 +1,6 @@
 # August NBR composite prototype
 
-This milestone tests whether an August 2017 pre-disturbance composite and an
+This document tests whether an August 2017 pre-disturbance composite and an
 August 2018 post-disturbance composite produce a coherent change signal over
 the provisional Kårböle/Ljusdal AOI. August was retained because the supplied
 feasibility inventory confirms observations in both years and it is the

@@ -1,6 +1,6 @@
 """Build one exact, disk-backed annual Sentinel-2 index composite.
 
-This milestone intentionally accepts exactly one explicit year per process.  It
+This command intentionally accepts exactly one explicit year per process.  It
 first writes one AOI-only NBR/NDVI GeoTIFF per usable acquisition date, then
 computes the exact temporal median one spatial block at a time.  Acquisition
 rasters are never collected into a full-AOI temporal stack in RAM.
@@ -116,7 +116,7 @@ def _approved_grid(config: ProjectConfig) -> AnalysisGrid:
         or grid.width != APPROVED_WIDTH
         or grid.height != APPROVED_HEIGHT
     ):
-        raise ValueError("configured analysis grid does not match the approved milestone-3 grid")
+        raise ValueError("configured analysis grid does not match the canonical analysis grid")
     return grid
 
 
@@ -422,7 +422,7 @@ def _build_interval(config: ProjectConfig, year: int) -> tuple[date, date]:
         raise ValueError(f"unsupported year {year}; configured years are {config.analysis_years}")
     if (config.month, config.window_start_day, config.window_end_day) != (8, 1, 31):
         raise ValueError(
-            "milestone 4A requires the configured interval "
+            "annual compositing requires the configured interval "
             "August 1 through August 31"
         )
     return date(year, 8, 1), date(year, 8, 31)
@@ -572,7 +572,7 @@ def build(
         ]
         aoi_pixels = int(np.count_nonzero(grid.aoi_mask))
         summary: dict[str, Any] = {
-            "processing_version": "milestone-4A memory-bounded annual composite v1",
+            "processing_version": "annual-composite-v1",
             "year": year,
             "requested_interval": {
                 "start": start_date.isoformat(),

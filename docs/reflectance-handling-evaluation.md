@@ -23,7 +23,7 @@ No NDVI-based recovery percentages are used.
 
 Sentinel-2 Processing Baseline 04.00 changed SCL class 2 toward
 topographic/cast shadows; dark features moved to class 7. The production SCL
-mask was not changed in this milestone.
+mask was not changed by this evaluation.
 
 Canonical 2022/2023 annual outputs were not rebuilt or changed by these
 diagnostics. The diagnostic commands write only under

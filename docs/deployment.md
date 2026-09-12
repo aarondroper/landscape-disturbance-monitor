@@ -105,4 +105,4 @@ configuration.
 7. Run a browser smoke test for Compare, Disturbance, and Recovery.
 
 No credentials, account IDs, bucket names, or deployment commands are part of
-this milestone.
+this repository’s deployment configuration.

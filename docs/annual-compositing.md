@@ -1,7 +1,7 @@
 # Memory-bounded annual compositing
 
-Milestone 4A builds August Sentinel-2 NBR and NDVI composites one explicitly
-selected year at a time. Each usable acquisition date is written as AOI-only,
+The annual builder creates August Sentinel-2 NBR and NDVI composites one
+explicitly selected year at a time. Each usable acquisition date is written as AOI-only,
 temporary per-acquisition float32 index GeoTIFFs. The exact temporal median is
 then reduced block by block using 256×256 reduction blocks, so complete
 acquisition rasters are not retained in memory and no complete Sentinel scene
@@ -32,7 +32,7 @@ The one-year command remains the analytical primitive:
 python -m landscape_monitor.build_annual_series --year 2019
 ```
 
-Milestone 4B adds a small orchestration layer around that command. Years must
+The batch command adds a small orchestration layer around that command. Years must
 always be supplied explicitly; the batch command never expands a request to
 all configured years. Duplicate requested years are sorted chronologically
 and removed. For example:
@@ -53,7 +53,7 @@ it. The batch does not use its status report as the source of truth.
 Required analytical completeness includes `nbr.tif`, `ndvi.tif`,
 `valid_count.tif`, and a parseable `annual-summary.json`; the summary must
 match the requested year and contain the established annual-build provenance.
-All three rasters must be readable, single-band products on the approved
+All three rasters must be readable, single-band products on the shared
 EPSG:32633, 20 m, 1266×1233 analysis grid with matching transforms and
 bounds. The optional `nbr-qa.png` is not required for analytical completeness.
 
@@ -67,10 +67,10 @@ timestamps, per-year validation, child exit codes, and overall status. Dry runs
 perform validation and report skip/build decisions without launching a child
 or writing the status file.
 
-## Regression check against the approved 2017/2018 prototype
+## Regression check against the 2017/2018 prototype
 
 On 2026-09-10, the generalized annual pipeline was run for 2017 and 2018 and
-compared with the approved prototype NBR rasters. Both pairs used the identical
+compared with the prototype NBR rasters. Both pairs used the identical
 EPSG:32633 grid, transform, dimensions, bounds, float32 dtype, and `-9999`
 nodata convention. The valid masks matched exactly. For 2017, all 1,538,379
 shared valid pixels matched exactly; for 2018, all 1,541,488 shared valid

@@ -1,7 +1,7 @@
 # Frontend product
 
-Milestone 7F polishes the React/TypeScript application in `web/` into a
-presentation-ready, map-first portfolio product. It is built with
+The React/TypeScript application in `web/` is a presentation-ready, map-first
+portfolio product. It is built with
 Vite 8 and MapLibre GL JS 6. It has no backend or API. Vite exposes the
 existing generated package at `data/derived/web-delivery/` as its static
 `publicDir`, so the frontend source and generated geospatial products remain
@@ -27,7 +27,7 @@ maps around a draggable vertical divider initialized at 50%. The divider is
 also keyboard-accessible as a slider. Disturbance GeoJSON, `promoteId`, fill,
 outline, hover state, and selected state are configured identically on both
 maps and interactions update both instances from one React selection state.
-The browser performs no analytical calculations; it reads the approved static
+The browser performs no analytical calculations; it reads the static
 time-series package and recovery COGs directly.
 
 The `Disturbance` mode uses one separate `DisturbanceMap` MapLibre instance. It
@@ -96,7 +96,7 @@ trusted line. Missing/null observations are not converted to zero and also
 break the line. Coverage labels remain “Good coverage”, “Partial coverage”,
 and “Poor coverage”; poor years additionally identify limited valid imagery.
 NDVI remains available as contextual data in the typed contract but is not
-charted in this milestone.
+charted in the frontend.
 
 ## Product explanation
 
@@ -141,16 +141,16 @@ npm run build
 Current functionality: 2017↔2018 RGB before/after swipe comparison, Compare /
 Disturbance / Recovery map modes, fixed 2017→2018 dNBR display, annual spectral-recovery COG switching, shared camera
 navigation, fixed imagery-state labels, mirrored disturbance hover and
-selection, the approved summary panel, and the selected-disturbance NBR and
+selection, the summary panel, and the selected-disturbance NBR and
 spectral-recovery timeline. There is no annual NBR map view, generic layer
 control, raster-pixel inspector, year animation, NDVI chart, or backend/API.
 
-The frontend is a static delivery package: browser code reads the approved
+The frontend is a static delivery package: browser code reads the
 JSON and COG assets directly through local MapLibre styling and HTTP byte-range
 access. It does not run analytical calculations, call a project backend, or
 regenerate data products. Browser smoke/screenshot QA should be recorded with
 the environment-specific validation results for each release.
 
-For milestone 7F, the automated frontend, Python, and static-package checks ran
-successfully, but no browser executable was available in the validation
-environment; interactive browser and screenshot QA therefore remains pending.
+The automated frontend, Python, and static-package checks run without a
+browser executable. Interactive browser and screenshot QA therefore remains
+an environment-specific release check.

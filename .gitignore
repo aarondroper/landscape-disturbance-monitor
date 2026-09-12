@@ -2,6 +2,10 @@
 .venv/
 venv/
 node_modules/
+.env
+.env.*
+!.env.example
+!.env.production.example
 .env*.local
 __pycache__/
 *.py[cod]
@@ -49,3 +53,9 @@ data/derived/diagnostics/**
 !data/derived/prototype/.gitkeep
 !data/derived/disturbance/
 !data/derived/disturbance/.gitkeep
+
+# Frontend QA captures and temporary raster files
+web/qa/
+web/screenshots/
+*.tmp.tif
+*.tmp.tiff

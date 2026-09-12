@@ -1,7 +1,7 @@
 # Browser-oriented RGB imagery
 
-Milestone 6C delivers presentation-only natural-color Sentinel-2 imagery for
-the five benchmark years 2017, 2018, 2020, 2023, and 2026. It is separate from the approved 20 m
+This workflow delivers presentation-only natural-color Sentinel-2 imagery for
+the five benchmark years 2017, 2018, 2020, 2023, and 2026. It is separate from the 20 m
 analytical NBR/NDVI and recovery products: RGB uses a fixed 10 m grid with
 EPSG:32633 bounds `[506260, 6858580, 531580, 6883240]`, 2532 columns, and
 2466 rows. The analytical grid remains 20 m and is not resampled here.
@@ -20,7 +20,7 @@ analytical NBR/NDVI `REJECT` treatment and its products are unchanged. Each
 channel is temporally median-composited in physical reflectance, independently
 of the other channels, before rendering.
 
-All five years use the identical final approved transform:
+All five years use the identical final display transform:
 
 ```text
 black point = 0.01

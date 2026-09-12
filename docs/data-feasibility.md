@@ -63,4 +63,4 @@ selection rule because the planned SCL mask is still needed.
 The AOI is a provisional rectangle, not a final scientific fire boundary. The probe
 records scene-level cloud cover but does not use it as a hard filter; later processing
 will require pixel-level SCL masking. No index, composite, disturbance, recovery, or
-web output is produced by this milestone.
+web output is produced by this probe.

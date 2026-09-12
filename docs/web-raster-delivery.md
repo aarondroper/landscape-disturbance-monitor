@@ -1,6 +1,6 @@
 # Analytical raster web delivery
 
-Milestone 6F packages the approved analytical rasters for browser delivery.
+This builder packages the analytical rasters for browser delivery.
 The canonical analysis remains EPSG:32633 on the 20 m, 1266 × 1233 grid and
 continues to be authoritative for exact numerical analysis. Browser derivatives
 use one separately derived EPSG:3857 analytical grid; they do not reuse the
@@ -29,7 +29,7 @@ python -m landscape_monitor.build_web_rasters
 python -m landscape_monitor.build_web_rasters --force
 ```
 
-The command reads only local approved sources and writes generated COGs,
+The command reads only local sources and writes generated COGs,
 diagnostic quicklooks, and `data/derived/web-delivery/raster-manifest.json`.
 The intended deployment is static HTTP/object storage with byte-range support,
 consumed by MapLibre GL JS through `@geomatico/maplibre-cog-protocol`.

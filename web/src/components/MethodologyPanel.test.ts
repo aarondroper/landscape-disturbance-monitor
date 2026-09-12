@@ -22,11 +22,11 @@ describe("methodology panel contract", () => {
     expect(methodologyPanelReducer(true, { type: "keydown", key: "Enter" })).toBe(true);
   });
 
-  it("keeps the approved recovery formula exact", () => {
+  it("keeps the recovery formula exact", () => {
     expect(RECOVERY_FORMULA).toBe("recovery_y = (NBR_y − NBR_2018) / (NBR_2017 − NBR_2018)");
   });
 
-  it("documents the approved disturbance rule and retained-area threshold", () => {
+  it("documents the disturbance rule and retained-area threshold", () => {
     expect(methodologyText).toContain("NBR2017 > 0.30");
     expect(methodologyText).toContain("dNBR ≥ 0.30");
     expect(methodologyText).toContain("connected retained area ≥ 5 ha");
@@ -52,7 +52,7 @@ describe("methodology panel contract", () => {
     expect(EMPTY_SELECTION_SECONDARY).toBe("Hover or click a detected disturbance polygon.");
   });
 
-  it("sets the approved page metadata and reduced-motion rule", () => {
+  it("sets the page metadata and reduced-motion rule", () => {
     const html = readFileSync(new URL("../../index.html", import.meta.url), "utf8");
     const css = readFileSync(new URL("../styles/app.css", import.meta.url), "utf8");
     expect(html).toContain("<title>Landscape Disturbance Monitor</title>");

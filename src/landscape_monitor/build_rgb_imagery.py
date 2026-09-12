@@ -90,7 +90,7 @@ def create_visualization_grid(config: ProjectConfig) -> AnalysisGrid:
     """Return the fixed, AOI-masked 10 m presentation grid."""
     resolution = float(config.visualization_resolution_m)
     if resolution != 10.0:
-        raise ValueError("milestone 6C requires visualization.resolution_m = 10")
+        raise ValueError("RGB imagery requires visualization.resolution_m = 10")
     left, bottom, right, top = VISUALIZATION_BOUNDS
     width = int(round((right - left) / resolution))
     height = int(round((top - bottom) / resolution))
@@ -245,7 +245,7 @@ def _build_interval(config: ProjectConfig, year: int) -> tuple[date, date]:
             f"unsupported year {year}; RGB benchmark years are {config.benchmark_years}"
         )
     if (config.month, config.window_start_day, config.window_end_day) != (8, 1, 31):
-        raise ValueError("milestone 6C requires the configured interval August 1 through August 31")
+        raise ValueError("RGB imagery requires the configured interval August 1 through August 31")
     return date(year, 8, 1), date(year, 8, 31)
 
 
@@ -614,7 +614,7 @@ def _merge_summary(path: Path, year_summary: dict[str, Any]) -> dict[str, Any]:
     merged = {key: value for key, value in previous.items() if key != "years"}
     merged.update(
         {
-            "milestone": "6C benchmark browser-oriented natural-color Sentinel-2 imagery",
+            "product": "benchmark browser-oriented natural-color Sentinel-2 imagery",
             "benchmark_years": list(SUPPORTED_RGB_YEARS),
             "years": {key: years[key] for key in sorted(years)},
             "aoi": year_summary["aoi"],

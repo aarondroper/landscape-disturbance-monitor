@@ -1,6 +1,6 @@
-"""Build static MapLibre-oriented RGB COGs from approved local RGB masters.
+"""Build static MapLibre-oriented RGB COGs from local RGB masters.
 
-This milestone is deliberately local-only.  It does not query STAC, read
+This command is deliberately local-only.  It does not query STAC, read
 remote assets, or rebuild a reflectance composite.  Each explicit benchmark
 year is reprojected from its existing float32 ``rgb-reflectance.tif`` master
 to one shared Web Mercator grid before the approved display transform is

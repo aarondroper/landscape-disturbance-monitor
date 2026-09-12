@@ -1,6 +1,6 @@
 # Browser RGB imagery delivery
 
-Milestone 6D converts the approved local RGB presentation masters into static
+This builder converts local RGB presentation masters into static
 browser-delivery Cloud Optimized GeoTIFFs. It is a local packaging step only:
 it does not query STAC, read Sentinel-2 remotely, rebuild reflectance
 composites, or change analytical, disturbance, or recovery products.
@@ -8,12 +8,12 @@ composites, or change analytical, disturbance, or recovery products.
 The canonical products remain in `data/derived/web-imagery/<year>/`:
 
 - `rgb-reflectance.tif` is the physical-reflectance presentation master.
-- `rgb-web.tif` is the approved EPSG:32633 RGBA presentation product.
+- `rgb-web.tif` is the EPSG:32633 RGBA presentation product.
 
 The browser assets are separate generated files in
 `data/derived/web-delivery/imagery/<year>/rgb.tif`. They are EPSG:3857 because
 the intended serverless MapLibre COG protocol does not perform arbitrary raster
-reprojection. One grid is derived from the approved common EPSG:32633 source
+reprojection. One grid is derived from the common EPSG:32633 source
 grid with Rasterio/GDAL and reused for every benchmark year:
 
 ```text
@@ -31,7 +31,7 @@ At this latitude that map-unit spacing is approximately native 10 m ground
 detail; it is not an assertion that Web Mercator map units equal ground metres.
 All five COGs use three uint8 RGB bands, 256×256 internal tiles, DEFLATE,
 internal overviews `[2, 4, 8, 16]`, and RGB photometric/color interpretation.
-The fixed approved display transform is unchanged: black `0.01`, white `0.22`,
+The fixed display transform is unchanged: black `0.01`, white `0.22`,
 gamma `1.0`. Reflectance is reprojected with average resampling and its
 validity mask with nearest-neighbour resampling before rendering.
 

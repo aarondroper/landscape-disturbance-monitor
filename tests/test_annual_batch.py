@@ -40,7 +40,7 @@ def _write_raster(path: Path, dtype: str = "float32", transform=TRANSFORM) -> No
 
 def _valid_summary(year: int) -> dict:
     return {
-        "processing_version": "milestone-4A memory-bounded annual composite v1",
+        "processing_version": "annual-composite-v1",
         "year": year,
         "requested_interval": {"start": f"{year}-08-01", "end": f"{year}-08-31"},
         "stac_item_count": 1,

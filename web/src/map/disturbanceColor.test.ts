@@ -12,7 +12,7 @@ function hexRgb(hex: string): [number, number, number] {
 }
 
 describe("2017–2018 dNBR display color", () => {
-  it.each(DISTURBANCE_COLOR_STOPS.map((stop) => [stop.value, hexRgb(stop.color)] as const))("uses the approved display stop at %s", (value, expected) => {
+  it.each(DISTURBANCE_COLOR_STOPS.map((stop) => [stop.value, hexRgb(stop.color)] as const))("uses the display stop at %s", (value, expected) => {
     expect(interpolateDisturbanceColor(value)).toEqual(expected);
   });
 

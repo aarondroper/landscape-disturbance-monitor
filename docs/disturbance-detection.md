@@ -1,9 +1,9 @@
-# Operational disturbance detection
+# Disturbance detection
 
-This milestone converts the validated August 2017/2018 NBR change rasters into
+This workflow converts the validated August 2017/2018 NBR change rasters into
 reproducible disturbance objects. It produces analytical rasters and a WGS84
-GeoJSON for later application use. Recovery, disturbance year, causal
-attribution, and frontend work are outside this milestone.
+GeoJSON for application use. The workflow does not estimate disturbance year
+or causal attribution.
 
 ## Interpretation
 

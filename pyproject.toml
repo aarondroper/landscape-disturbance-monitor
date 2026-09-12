@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "landscape-disturbance-monitor"
 version = "0.1.0"
-description = "STAC and remote COG feasibility probe for the Kårböle wildfire landscape"
+description = "Reproducible Sentinel-2 disturbance and spectral-recovery analysis with a static MapLibre frontend"
 requires-python = ">=3.12"
 dependencies = [
     "pystac-client>=0.8,<1",

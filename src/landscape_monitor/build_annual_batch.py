@@ -113,14 +113,16 @@ def _validate_summary(
         reasons.append(f"summary year is {summary.get('year')!r}, expected {year}")
 
     processing_version = summary.get("processing_version")
-    if not isinstance(processing_version, str) or not processing_version.startswith("milestone-4A"):
-        reasons.append("summary does not identify a completed milestone-4A annual build")
+    if not isinstance(processing_version, str) or not processing_version.startswith(
+        "annual-composite"
+    ):
+        reasons.append("summary does not identify a completed annual composite build")
 
     processing = summary.get("processing")
     if not isinstance(processing, dict) or processing.get("temporal_statistic") != (
         "exact per-pixel median across valid acquisition dates"
     ):
-        reasons.append("summary does not record the approved exact temporal median")
+        reasons.append("summary does not record the exact temporal median")
     stored_treatment = (
         processing.get("reflectance_treatment") if isinstance(processing, dict) else None
     )

@@ -38,7 +38,7 @@ export const methodologySections: readonly MethodologySection[] = [
     id: "recovery",
     title: "Recovery",
     paragraphs: [
-      "Spectral recovery is calculated for each year using the approved normalized change formula:",
+      "Spectral recovery is calculated for each year using the normalized change formula:",
       "Spectral recovery is not the same as ecological recovery.",
     ],
     formula: RECOVERY_FORMULA,

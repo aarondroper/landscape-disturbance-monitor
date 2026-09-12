@@ -1,6 +1,6 @@
 """Build the static vector and JSON frontend data package.
 
-This milestone packages approved local analytical outputs only.  Disturbance
+This command packages local analytical outputs only.  Disturbance
 geometries remain in their original WGS84 topology; the only geometry change
 is deterministic longitude/latitude coordinate rounding, gated by area and
 validity checks.  No network or raster processing is used.

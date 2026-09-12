@@ -19,7 +19,7 @@ export type RecoveryYear = (typeof RECOVERY_YEARS)[number];
 
 export function imageryPath(year: number = AFTER_IMAGERY_YEAR): string {
   if (!SUPPORTED_IMAGERY_YEARS.includes(year as (typeof SUPPORTED_IMAGERY_YEARS)[number])) {
-    throw new Error("Only 2017 and 2018 RGB imagery are supported in milestone 7B.");
+    throw new Error("Only 2017 and 2018 RGB imagery are supported in Compare mode.");
   }
   return `imagery/${year}/rgb.tif`;
 }

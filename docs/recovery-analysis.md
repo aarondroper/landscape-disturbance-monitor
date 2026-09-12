@@ -1,7 +1,7 @@
 # Local NBR recovery analysis
 
-Milestone 5A calculates spectral recovery from the fixed 80-object disturbance
-footprint and the complete approved annual August 2017–2026 series. It reads
+The recovery analysis calculates spectral recovery from the fixed 80-object
+disturbance footprint and the complete annual August 2017–2026 series. It reads
 only existing canonical local rasters; it does not query STAC, rebuild annual
 composites, or alter disturbance detection or polygons.
 

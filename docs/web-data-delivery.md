@@ -1,6 +1,6 @@
 # Static web data delivery
 
-Milestone 6E packages approved analytical outputs for a future frontend. The
+This builder packages analytical outputs for the frontend. The
 package is static JSON and GeoJSON; it does not require an API, database,
 network access, React, or MapLibre.
 

@@ -456,10 +456,10 @@ def build(
         raise RuntimeError(f"canonical inputs changed during recovery build: {changed}")
     summary = {
         "methodology": {
-            "version": "milestone-5A-local-nbr-recovery-v1",
+            "version": "nbr-recovery-v1",
             "indicator": "NBR primary; NDVI contextual only",
             "formula": "(NBR_y - NBR_2018) / (NBR_2017 - NBR_2018)",
-            "annual_composite": "approved August annual canonical outputs",
+            "annual_composite": "August annual canonical outputs",
             "pixel_first_aggregation": True,
             "clamping": "none",
             "recovery_threshold_denominator": "valid recovery pixels only",
