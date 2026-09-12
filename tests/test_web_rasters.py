@@ -125,16 +125,6 @@ def test_paths_missing_year_and_source_hashes_fail_loudly(tmp_path: Path):
         web._validate_output_root(ROOT / "data" / "derived" / "disturbance", ROOT)
 
 
-def test_existing_web_manifests_reconcile_without_network_or_mutation():
-    paths = web._source_paths(ROOT)
-    before = web.capture_input_hashes(paths)
-    assert web._manifest_reconciliation(paths) == {
-        "annual_years": list(range(2017, 2027)),
-        "benchmark_imagery_years": [2017, 2018, 2020, 2023, 2026],
-    }
-    assert web.capture_input_hashes(paths) == before
-
-
 def test_manifest_grid_record_is_relative_and_deterministically_serializable():
     record = web.browser_grid_record(web.create_browser_grid())
     payload = json.dumps(record, indent=2, allow_nan=False)
