@@ -11,6 +11,8 @@ import type {
 export const BEFORE_IMAGERY_YEAR = 2017;
 export const AFTER_IMAGERY_YEAR = 2018;
 export const SUPPORTED_IMAGERY_YEARS = [BEFORE_IMAGERY_YEAR, AFTER_IMAGERY_YEAR] as const;
+export const RECOVERY_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
+export type RecoveryYear = (typeof RECOVERY_YEARS)[number];
 
 export function assetUrl(
   path: string,
@@ -27,6 +29,13 @@ export function imageryPath(year: number = AFTER_IMAGERY_YEAR): string {
     throw new Error("Only 2017 and 2018 RGB imagery are supported in milestone 7B.");
   }
   return `imagery/${year}/rgb.tif`;
+}
+
+export function recoveryPath(year: number): string {
+  if (!RECOVERY_YEARS.includes(year as RecoveryYear)) {
+    throw new Error("Only annual spectral recovery COGs from 2017 through 2026 are supported.");
+  }
+  return `rasters/recovery/${year}.tif`;
 }
 
 async function fetchJson(path: string): Promise<unknown> {
@@ -216,6 +225,10 @@ export function coverageLabel(status: CoverageStatus): string {
   }[status];
 }
 
+export function coverageShortLabel(status: CoverageStatus): string {
+  return status === "GOOD" ? "Good" : status === "POOR" ? "Poor" : "Partial";
+}
+
 export function coverageDisplay(status: CoverageStatus, reportingRecommended: boolean): {
   label: string;
   warning: boolean;
@@ -225,4 +238,8 @@ export function coverageDisplay(status: CoverageStatus, reportingRecommended: bo
 
 export function formatSpectralRecovery(value: number): string {
   return `${value.toFixed(2)}×`;
+}
+
+export function observationForYear(series: { series: AnnualObservation[] } | undefined, year: number): AnnualObservation | undefined {
+  return series?.series.find((observation) => observation.year === year);
 }

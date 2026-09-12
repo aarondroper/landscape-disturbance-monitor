@@ -1,10 +1,11 @@
 import { useState, type ReactElement } from "react";
 import { coverageLabel } from "../data/loadData";
-import { buildTrustedSegments, recoveryDomain } from "../data/timeline";
+import { buildTrustedSegments, isMappedTimelineYear, recoveryDomain } from "../data/timeline";
 import type { AnnualObservation, DisturbanceSeries } from "../data/types";
 
 interface RecoveryTimelineProps {
   series: DisturbanceSeries;
+  mappedYear?: number;
 }
 
 const WIDTH = 360;
@@ -56,6 +57,7 @@ function pointShape(
   metric: "nbr" | "recovery",
   index: number,
   domain: [number, number],
+  mappedYear?: number,
 ): ReactElement {
   const x = xFor(index);
   const value = metric === "nbr" ? observation.nbr_median : observation.recovery_median;
@@ -65,7 +67,8 @@ function pointShape(
     : yFor(value, domain, RECOVERY_TOP, RECOVERY_BOTTOM);
   const poor = observation.coverage_status === "POOR";
   const usable = observation.coverage_status === "USABLE_WITH_COVERAGE_FLAG";
-  const className = `timeline-point timeline-point--${metric} timeline-point--${observation.coverage_status.toLowerCase()}`;
+  const mapped = isMappedTimelineYear(observation.year, mappedYear);
+  const className = `timeline-point timeline-point--${metric} timeline-point--${observation.coverage_status.toLowerCase()}${mapped ? " timeline-point--mapped" : ""}`;
 
   if (poor) {
     return <rect className={className} x={x - 3.3} y={y - 3.3} width="6.6" height="6.6" fill="var(--panel-bg)" stroke="currentColor" />;
@@ -81,7 +84,7 @@ function observationLabel(observation: AnnualObservation): string {
   return `${observation.year}: NBR ${formatValue(observation.nbr_median)}, spectral recovery ${recovery}, ${coverageLabel(observation.coverage_status)}`;
 }
 
-export function RecoveryTimeline({ series }: RecoveryTimelineProps) {
+export function RecoveryTimeline({ series, mappedYear }: RecoveryTimelineProps) {
   const [focusedYear, setFocusedYear] = useState<number>();
   const recoveryYDomain = recoveryDomain(series);
   const recoverySegments = buildTrustedSegments(series.series, "recovery_median");
@@ -130,6 +133,9 @@ export function RecoveryTimeline({ series }: RecoveryTimelineProps) {
             {recoverySegments.map((segment, index) => (
               <polyline className="timeline-line timeline-line--recovery" key={`recovery-line-${index}`} points={linePoints(segment, (observation) => observation.recovery_median, recoveryYDomain, RECOVERY_TOP, RECOVERY_BOTTOM)} />
             ))}
+            {mappedYear !== undefined && YEARS.includes(mappedYear) && (
+              <line className="timeline-active-year" x1={xFor(YEARS.indexOf(mappedYear))} x2={xFor(YEARS.indexOf(mappedYear))} y1={NBR_TOP - 5} y2={RECOVERY_BOTTOM + 5} />
+            )}
           </g>
           <g className="timeline-ranges" aria-hidden="true">
             {series.series.map((observation, index) => {
@@ -149,8 +155,8 @@ export function RecoveryTimeline({ series }: RecoveryTimelineProps) {
             })}
           </g>
           <g className="timeline-points" aria-hidden="true">
-            {series.series.map((observation, index) => pointShape(observation, "nbr", index, recoveryYDomain))}
-            {series.series.map((observation, index) => pointShape(observation, "recovery", index, recoveryYDomain))}
+            {series.series.map((observation, index) => pointShape(observation, "nbr", index, recoveryYDomain, mappedYear))}
+            {series.series.map((observation, index) => pointShape(observation, "recovery", index, recoveryYDomain, mappedYear))}
           </g>
           <g className="timeline-focus-targets">
             {series.series.map((observation, index) => (

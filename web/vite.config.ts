@@ -20,7 +20,8 @@ function rangeAssetMiddleware(): Plugin {
         }
 
         const requestUrl = new URL(request.url ?? "/", "http://vite.local");
-        if (!requestUrl.pathname.startsWith("/imagery/") || !request.headers.range) {
+        const isRasterAsset = requestUrl.pathname.startsWith("/imagery/") || requestUrl.pathname.startsWith("/rasters/");
+        if (!isRasterAsset || !request.headers.range) {
           next();
           return;
         }

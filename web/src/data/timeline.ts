@@ -38,3 +38,7 @@ export function recoveryDomain(series?: DisturbanceSeries): [number, number] {
 export function hasAnnualObservation(observation: AnnualObservation, metric: TimelineMetric): boolean {
   return observation.reporting_recommended && observation[metric] !== null;
 }
+
+export function isMappedTimelineYear(observationYear: number, mappedYear: number | undefined): boolean {
+  return mappedYear !== undefined && observationYear === mappedYear;
+}

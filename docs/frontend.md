@@ -1,18 +1,19 @@
 # Frontend foundation
 
-Milestone 7A adds a small React/TypeScript application in `web/`, built with
+Milestone 7D adds a small React/TypeScript application in `web/`, built with
 Vite 8 and MapLibre GL JS 6. It has no backend or API. Vite exposes the
 existing generated package at `data/derived/web-delivery/` as its static
 `publicDir`, so the frontend source and generated geospatial products remain
 separate.
 
-The map uses a local MapLibre style with no remote basemap or API key. A
-vertical two-map comparison uses `@geoql/maplibre-gl-compare` 0.0.4: the
-before map shows the 2017 browser RGB COG and the after map shows the 2018
+The map uses a local MapLibre style with no remote basemap or API key. The
+top-level view control has two modes: `Compare` (the default) and `Recovery`.
+Compare remains the vertical two-map `@geoql/maplibre-gl-compare` 0.0.4 view:
+the before map shows the 2017 browser RGB COG and the after map shows the 2018
 browser RGB COG. Both are registered through
 `@geomatico/maplibre-cog-protocol` and loaded as `cog://` raster sources at
 `/imagery/2017/rgb.tif` and `/imagery/2018/rgb.tif`. The COG protocol reads
-both files with HTTP byte-range requests; Vite development has a small
+these files with HTTP byte-range requests; Vite development has a small
 middleware for range responses, while production uses ordinary static files.
 
 The comparison is one synchronized MapLibre camera: navigation controls are
@@ -21,8 +22,15 @@ maps around a draggable vertical divider initialized at 50%. The divider is
 also keyboard-accessible as a slider. Disturbance GeoJSON, `promoteId`, fill,
 outline, hover state, and selected state are configured identically on both
 maps and interactions update both instances from one React selection state.
-The browser performs no analytical calculations and does not load analytical
-NBR, recovery, dNBR, or time-series layers.
+The browser performs no analytical calculations; it reads the approved static
+time-series package and recovery COGs directly.
+
+The `Recovery` mode uses one separate `RecoveryMap` MapLibre instance. It shares
+the study-area fit bounds, disturbance source, promoted IDs, hover/selection
+semantics, navigation control, scale control, and selected-disturbance panel
+with Compare, but does not display the swipe controller. A small shared camera
+snapshot (center, zoom, bearing, pitch) is captured on map movement and applied
+when switching modes, so switching views does not reset the working extent.
 
 The application loads `/data/summary.json`, `/data/disturbances.geojson`, and
 `/data/disturbance-timeseries.json` once at startup. The time-series package is
@@ -30,7 +38,27 @@ parsed into an in-memory lookup keyed by `disturbance_id`; selection only reads
 from that lookup and does not recreate the maps or refetch the package. The
 selected panel preserves its summary values, then adds a compact SVG timeline
 with separate NBR and spectral-recovery plots sharing discrete annual
-positions from 2017 through 2026.
+positions from 2017 through 2026. The selected Recovery year is highlighted
+on the timeline without changing the chart’s complete annual series.
+
+Recovery has a compact discrete year slider covering exactly 2017–2026 and
+defaults to 2026. It directly loads only the selected browser-ready recovery
+COG at `/rasters/recovery/{year}.tif`, using a base-aware `cog://` URL and
+256-pixel tiles. Changing years updates the recovery raster source/layer only;
+the old raster remains until the new source is ready, then stale annual
+sources are removed. No all-years preload or year animation is used.
+
+The recovery COG remains a single-band float32 raw product. A deterministic
+client-side custom color function maps the raw values visually through the
+restrained stops `#6b4c3b` at 0, `#c7a66b` at 0.5, `#6faaa1` at 1.0, and
+`#2f6f68` at 1.5; values outside the range are clamped only for display.
+Underlying values remain unbounded for the COG and chart. The COG protocol’s
+internal mask is applied after colorization, so missing coverage remains
+transparent rather than becoming zero recovery. Fixed 2018 RGB imagery is
+shown beneath the thematic layer at reduced opacity as spatial context and is
+labeled `2018 reference imagery`; it does not switch with the recovery year.
+The selected disturbance’s year-specific coverage status is shown beside the
+control, with `Limited valid imagery` for POOR coverage.
 
 The recovery plot shows the median plus a restrained P10–P90 pixel range. Its
 reference levels are 0 (post-disturbance baseline) and 1 (2017 baseline).
@@ -61,8 +89,9 @@ npm run typecheck
 npm run build
 ```
 
-Current functionality: 2017↔2018 RGB before/after swipe comparison, shared
-camera navigation, fixed imagery-state labels, mirrored disturbance hover and
+Current functionality: 2017↔2018 RGB before/after swipe comparison, Compare /
+Recovery map modes, annual spectral-recovery COG switching, shared camera
+navigation, fixed imagery-state labels, mirrored disturbance hover and
 selection, the approved summary panel, and the selected-disturbance NBR and
-spectral-recovery timeline. There is no year switch, analytical raster layer,
-layer control, NDVI chart, or backend/API.
+spectral-recovery timeline. There is no NBR or dNBR map layer, generic layer
+control, raster-pixel inspector, year animation, NDVI chart, or backend/API.

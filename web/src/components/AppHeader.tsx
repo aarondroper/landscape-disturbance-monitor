@@ -1,11 +1,14 @@
 import type { SummaryData } from "../data/types";
+import type { MapViewMode } from "../map/viewMode";
 
 interface AppHeaderProps {
   summary?: SummaryData;
   summaryError?: string;
+  mode: MapViewMode;
+  onModeChange: (mode: MapViewMode) => void;
 }
 
-export function AppHeader({ summary, summaryError }: AppHeaderProps) {
+export function AppHeader({ summary, summaryError, mode, onModeChange }: AppHeaderProps) {
   const projectSummary = summary
     ? `${summary.project.disturbance_object_count.toLocaleString("en-US")} detected disturbance areas · ${summary.project.total_analytical_disturbance_area_ha.toLocaleString("en-US")} ha`
     : summaryError
@@ -18,6 +21,20 @@ export function AppHeader({ summary, summaryError }: AppHeaderProps) {
       <div className="context-line">Hälsingland, Sweden · 2017–2026</div>
       <div className="descriptor">Sentinel-2 disturbance &amp; spectral recovery</div>
       <div className="project-summary">{projectSummary}</div>
+      <div className="mode-switch" role="tablist" aria-label="Map view">
+        {(["compare", "recovery"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="tab"
+            aria-selected={mode === option}
+            className={mode === option ? "mode-switch__button mode-switch__button--active" : "mode-switch__button"}
+            onClick={() => onModeChange(option)}
+          >
+            {option === "compare" ? "Compare" : "Recovery"}
+          </button>
+        ))}
+      </div>
     </header>
   );
 }

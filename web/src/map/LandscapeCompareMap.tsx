@@ -20,6 +20,8 @@ import {
 } from "./mapLayers";
 import { replaceMirroredFeatureState, setMirroredFeatureState } from "./interactionState";
 import { cleanupComparisonResources } from "./comparisonLifecycle";
+import type { CameraSnapshot } from "./camera";
+import { cameraSnapshotOf } from "./camera";
 
 maplibregl.addProtocol("cog", cogProtocol);
 maplibregl.setWorkerUrl(workerUrl);
@@ -28,22 +30,17 @@ interface LandscapeCompareMapProps {
   disturbances: DisturbanceCollection;
   onSelect: (disturbance?: DisturbanceProperties) => void;
   onError: (message: string) => void;
+  selectedId?: string;
+  initialCamera?: CameraSnapshot;
+  onCameraChange: (camera: CameraSnapshot) => void;
 }
 
-function cameraOf(map: maplibregl.Map): maplibregl.CameraOptions {
-  return {
-    center: map.getCenter(),
-    zoom: map.getZoom(),
-    bearing: map.getBearing(),
-    pitch: map.getPitch(),
-  };
-}
-
-export function LandscapeCompareMap({ disturbances, onSelect, onError }: LandscapeCompareMapProps) {
+export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedId, initialCamera, onCameraChange }: LandscapeCompareMapProps) {
   const comparisonRef = useRef<HTMLDivElement>(null);
   const beforeContainerRef = useRef<HTMLDivElement>(null);
   const afterContainerRef = useRef<HTMLDivElement>(null);
-  const selectedIdRef = useRef<string | undefined>(undefined);
+  const selectedIdRef = useRef<string | undefined>(selectedId);
+  const initialCameraRef = useRef(initialCamera);
   const hoveredIdRef = useRef<string | undefined>(undefined);
   const compareRef = useRef<Compare | undefined>(undefined);
   const mapsRef = useRef<maplibregl.Map[]>([]);
@@ -127,6 +124,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError }: Landsca
       });
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
       for (const layer of disturbanceLayers()) map.addLayer(layer);
+      if (selectedIdRef.current) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedIdRef.current }, { selected: true });
 
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
         updateHover(featureId(event));
@@ -159,12 +157,17 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError }: Landsca
     const initializeCompare = () => {
       if (readyMaps.size !== 2 || compareRef.current) return;
       const [west, south, east, north] = calculateBounds(disturbances);
-      beforeMap.fitBounds([[west, south], [east, north]], {
-        padding: { top: 96, right: 360, bottom: 72, left: 32 },
-        maxZoom: 11,
-        duration: 0,
-      });
-      afterMap.jumpTo(cameraOf(beforeMap));
+      if (initialCameraRef.current) {
+        beforeMap.jumpTo(initialCameraRef.current);
+        afterMap.jumpTo(initialCameraRef.current);
+      } else {
+        beforeMap.fitBounds([[west, south], [east, north]], {
+          padding: { top: 96, right: 360, bottom: 72, left: 32 },
+          maxZoom: 11,
+          duration: 0,
+        });
+        afterMap.jumpTo(cameraSnapshotOf(beforeMap));
+      }
 
       const compare = new Compare(beforeMap, afterMap, comparisonContainer, {
         orientation: "vertical",
@@ -186,6 +189,10 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError }: Landsca
       });
       compare.setSlider((comparisonContainer.clientWidth * INITIAL_DIVIDER_PERCENT) / 100);
       compareRef.current = compare;
+
+      const reportCamera = () => onCameraChange(cameraSnapshotOf(afterMap));
+      afterMap.on("moveend", reportCamera);
+      mapListeners.push(() => afterMap.off("moveend", reportCamera));
 
       const swiper = comparisonContainer.querySelector<HTMLElement>(".compare-swiper-vertical");
       if (!swiper) return;
@@ -241,7 +248,14 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError }: Landsca
       document.documentElement.style.removeProperty("--compare-line-bg");
       mapsRef.current = [];
     };
-  }, [disturbances, onError, onSelect]);
+  }, [disturbances, onError, onSelect, onCameraChange]);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+    for (const map of mapsRef.current) {
+      if (selectedId) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedId }, { selected: true });
+    }
+  }, [selectedId]);
 
   const isLoading = loadedYears.size < 2;
   return (
