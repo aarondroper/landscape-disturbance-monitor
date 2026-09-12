@@ -26,6 +26,12 @@
   package: unsimplified WGS84 disturbance GeoJSON with QA-gated coordinate
   rounding, compact disturbance time series, landscape summary, and a
   deterministic manifest. Its analytical `area_ha` values remain authoritative.
+- `derived/web-delivery/rasters/` contains milestone-6F single-band float32
+  analytical COGs: annual NBR, unbounded disturbance-footprint recovery, and
+  fixed 2017→2018 spectral dNBR. They use one EPSG:3857 grid derived from the
+  canonical 20 m EPSG:32633 grid, internal masks, and browser-side colorization.
+  `raster-manifest.json` records deterministic delivery metadata and QA; these
+  COGs are visualization derivatives, not replacements for canonical sources.
 - `derived/annual/build-status.json` records the latest non-dry-run explicit
   annual batch attempt; it is advisory and does not replace output validation.
 - `derived/diagnostics/` contains local coverage and reflectance-treatment

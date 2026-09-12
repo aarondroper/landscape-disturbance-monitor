@@ -99,6 +99,20 @@ topology and applies only QA-gated coordinate rounding. It does not build
 frontend code or access network resources. See
 [`docs/web-data-delivery.md`](docs/web-data-delivery.md).
 
+Build the analytical browser COG package (milestone 6F):
+
+```bash
+python -m landscape_monitor.build_web_rasters
+python -m landscape_monitor.build_web_rasters --force
+```
+
+This local-only command creates ten annual NBR COGs, ten annual spectral
+recovery COGs, and the fixed 2017→2018 spectral dNBR COG on one native-density
+analytical EPSG:3857 grid. Values remain float32 and raw; transparency uses an
+internal mask and colorization is deferred to the frontend. It does not build
+frontend code or access STAC or remote EO resources. See
+[`docs/web-raster-delivery.md`](docs/web-raster-delivery.md).
+
 Run tests and lint checks:
 
 ```bash
@@ -113,7 +127,8 @@ to `data/derived/prototype/`, disturbance outputs to
 `data/derived/annual/`, local recovery analysis to `data/derived/recovery/`,
 and RGB presentation products to `data/derived/web-imagery/`; browser delivery
 COGs, imagery manifest, and the static vector/JSON package are written
-separately under `data/derived/web-delivery/`.
+separately under `data/derived/web-delivery/`. Analytical browser COGs use a
+separate 20 m-derived Web Mercator grid from the RGB imagery.
 Temporary
 date-level derived products are written
 under `data/.tmp/annual/` and removed after a successful or failed run unless
