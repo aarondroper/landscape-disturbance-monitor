@@ -8,6 +8,7 @@
     "preview": "vite preview",
     "build": "tsc -b && vite build",
     "test": "vitest run",
+    "test:generated": "node scripts/test-generated.mjs",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false"
   },

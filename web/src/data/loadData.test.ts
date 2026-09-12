@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
   assetUrl,
@@ -14,7 +13,7 @@ import {
   parseDisturbanceTimeseries,
   parseSummary,
 } from "./loadData";
-import type { DisturbanceCollection } from "./types";
+import type { AnnualObservation, DisturbanceCollection } from "./types";
 
 const feature = (id: string, coordinates: number[][][]): DisturbanceCollection["features"][number] => ({
   type: "Feature",
@@ -70,12 +69,47 @@ describe("static delivery helpers", () => {
     vi.unstubAllGlobals();
   });
 
-  it("parses the generated 80-record time-series package into an ID lookup", () => {
-    const generated = JSON.parse(readFileSync(new URL("../../../data/derived/web-delivery/data/disturbance-timeseries.json", import.meta.url), "utf8")) as unknown;
+  it("parses a small typed time-series fixture into an ID lookup", () => {
+    const years = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+    const seriesFor = (id: string): AnnualObservation[] => years.map((year, index) => ({
+      year,
+      nbr_median: 0.2,
+      recovery_median: id === "disturbance-001" && year === 2019
+        ? -0.1
+        : id === "disturbance-001" && year === 2026
+          ? 1.2
+          : id === "disturbance-076" && year === 2022
+            ? null
+            : 0.5,
+      recovery_p10: 0.4,
+      recovery_p90: 0.6,
+      nbr_valid_fraction: 1,
+      coverage_status: id === "disturbance-004" && index >= 5 ? "POOR" : "GOOD",
+      reporting_recommended: true,
+      ndvi_median: 0.4,
+      ndvi_valid_fraction: 1,
+    }));
+    const generated = {
+      schema_version: 1,
+      years,
+      coverage_thresholds: { good_min: 0.95, usable_min: 0.8 },
+      disturbances: {
+        "disturbance-001": { area_ha: 1, series: seriesFor("disturbance-001") },
+        "disturbance-004": { area_ha: 2, series: seriesFor("disturbance-004") },
+        "disturbance-076": { area_ha: 3, series: seriesFor("disturbance-076") },
+      },
+    };
     const packageData = parseDisturbanceTimeseries(generated);
     const lookup = createDisturbanceSeriesLookup(packageData);
-    const geography = parseDisturbanceCollection(JSON.parse(readFileSync(new URL("../../../data/derived/web-delivery/data/disturbances.geojson", import.meta.url), "utf8")) as unknown);
-    expect(Object.keys(lookup)).toHaveLength(80);
+    const geography = parseDisturbanceCollection({
+      type: "FeatureCollection",
+      features: [
+        feature("disturbance-001", [[[15, 61], [16, 61], [16, 62], [15, 62], [15, 61]]]),
+        feature("disturbance-004", [[[17, 61], [18, 61], [18, 62], [17, 62], [17, 61]]]),
+        feature("disturbance-076", [[[19, 61], [20, 61], [20, 62], [19, 62], [19, 61]]]),
+      ],
+    });
+    expect(Object.keys(lookup)).toHaveLength(3);
     expect(Object.keys(lookup).sort()).toEqual(geography.features.map((feature) => feature.properties.disturbance_id).sort());
     expect(lookup["disturbance-001"].series.map((observation) => observation.year)).toEqual([
       2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026,

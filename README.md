@@ -133,12 +133,13 @@ notes in [`docs/`](docs/).
 
 ## Testing
 
-The full contract suites exercise generated package relationships and require
-the locally built products under `data/derived/`. A clean clone can install,
-lint, typecheck, and build the source, but the data-dependent tests require
-the reproduction workflow above first.
+### Default source validation
+
+These checks are self-contained and work from a clean clone. Generated
+products are intentionally excluded from Git.
 
 ```bash
+python -m pip install -e '.[dev]'
 pytest
 ruff check .
 pip check
@@ -149,6 +150,24 @@ npm run lint
 npm run typecheck
 npm run build
 ```
+
+### Generated-data validation
+
+After the local EO/data pipeline has produced `data/derived/`, run the
+generated-package checks explicitly:
+
+```bash
+python -m landscape_monitor.validate_web_delivery
+pytest -m generated_data
+
+cd web
+npm run test:generated
+```
+
+The Python marker and frontend command validate relationships in the real
+locally generated browser-delivery package. If that ignored package is absent,
+they report a deliberate skip/diagnostic; they do not make default source
+validation appear to have validated generated products.
 
 ## Limitations
 

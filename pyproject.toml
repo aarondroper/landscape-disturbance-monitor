@@ -27,6 +27,10 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+addopts = "-m 'not generated_data'"
+markers = [
+    "generated_data: validates the locally generated delivery package; excluded from default source tests",
+]
 
 [tool.ruff]
 line-length = 100

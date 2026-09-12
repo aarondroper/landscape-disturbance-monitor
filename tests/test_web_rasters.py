@@ -107,7 +107,18 @@ def test_paths_missing_year_and_source_hashes_fail_loudly(tmp_path: Path):
     assert web.ANNUAL_YEARS == tuple(range(2017, 2027))
     with pytest.raises(FileNotFoundError):
         web._read_float_source(tmp_path / "missing-2030.tif")
-    paths = web._source_paths(ROOT)
+    paths = web._source_paths(tmp_path)
+    all_paths = [
+        *paths["annual"].values(),
+        *paths["recovery"].values(),
+        paths["disturbance_mask"],
+        paths["disturbance_labels"],
+        paths["web_data_manifest"],
+        paths["imagery_manifest"],
+    ]
+    for path in all_paths:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"synthetic source")
     before = web.capture_input_hashes(paths)
     assert len(before) == 24
     with pytest.raises(web.WebRasterBuildError, match="cannot target analytical"):
