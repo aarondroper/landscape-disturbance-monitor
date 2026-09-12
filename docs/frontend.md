@@ -1,6 +1,7 @@
-# Frontend foundation
+# Frontend product
 
-Milestone 7D adds a small React/TypeScript application in `web/`, built with
+Milestone 7F polishes the React/TypeScript application in `web/` into a
+presentation-ready, map-first portfolio product. It is built with
 Vite 8 and MapLibre GL JS 6. It has no backend or API. Vite exposes the
 existing generated package at `data/derived/web-delivery/` as its static
 `publicDir`, so the frontend source and generated geospatial products remain
@@ -97,6 +98,29 @@ and “Poor coverage”; poor years additionally identify limited valid imagery.
 NDVI remains available as contextual data in the typed contract but is not
 charted in this milestone.
 
+## Product explanation
+
+The compact `Methodology` action in the header opens a right-side React/CSS
+drawer over the map. Its copy is kept in the single
+`web/src/components/MethodologyPanel.tsx` component/data structure and covers
+the three modes, the project-specific disturbance rule, the exact spectral
+recovery formula, the meaning of values below 0 and above 1, coverage QA,
+data/source context, and concise limitations. It intentionally does not expose
+low-level raster or STAC implementation details.
+
+The drawer has a labelled dialog role, a labelled close button, Escape-to-close,
+focus on open, and focus return to the header trigger. The Compare divider, map
+mode buttons, recovery year slider, and timeline observation targets remain
+keyboard accessible. Coverage is communicated with labels and point/line
+shapes as well as color. A reduced-motion media rule keeps the small functional
+UI transitions safe for users who request less motion.
+
+Loading and runtime failures use short, identified messages such as
+`Unable to load recovery layer` and `Unable to load disturbance data`; raw
+exception text is not shown in the interface. A subtle attribution line reads
+`Sentinel-2 L2A · Copernicus · via Element 84 Earth Search` in the methodology
+drawer.
+
 Run locally:
 
 ```bash
@@ -120,3 +144,13 @@ navigation, fixed imagery-state labels, mirrored disturbance hover and
 selection, the approved summary panel, and the selected-disturbance NBR and
 spectral-recovery timeline. There is no annual NBR map view, generic layer
 control, raster-pixel inspector, year animation, NDVI chart, or backend/API.
+
+The frontend is a static delivery package: browser code reads the approved
+JSON and COG assets directly through local MapLibre styling and HTTP byte-range
+access. It does not run analytical calculations, call a project backend, or
+regenerate data products. Browser smoke/screenshot QA should be recorded with
+the environment-specific validation results for each release.
+
+For milestone 7F, the automated frontend, Python, and static-package checks ran
+successfully, but no browser executable was available in the validation
+environment; interactive browser and screenshot QA therefore remains pending.

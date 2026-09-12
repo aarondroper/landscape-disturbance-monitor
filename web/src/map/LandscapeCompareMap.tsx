@@ -85,9 +85,8 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     const mapListeners: Array<() => void> = [];
     mapListeners.push(() => resizeObserver.disconnect());
 
-    const handleMapError = (year: number) => (event: maplibregl.ErrorEvent) => {
-      const message = event.error instanceof Error ? event.error.message : String(event.error);
-      onError(`${year} imagery error: ${message}`);
+    const handleMapError = (year: number) => () => {
+      onError(`Unable to load ${year} imagery`);
     };
 
     const updateHover = (id: string | undefined) => {
@@ -271,6 +270,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
         <small>{comparisonLabels.after.descriptor}</small>
       </div>
       {isLoading && <div className="imagery-loading" role="status">Loading imagery…</div>}
+      <div className="comparison-hint" aria-hidden="true">Drag to compare</div>
     </div>
   );
 }

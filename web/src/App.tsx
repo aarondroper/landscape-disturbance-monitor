@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { loadDisturbanceTimeseries, loadDisturbances, loadSummary } from "./data/loadData";
 import type { DisturbanceCollection, DisturbanceProperties, DisturbanceSeriesLookup, SummaryData } from "./data/types";
 import { AppHeader } from "./components/AppHeader";
+import { MethodologyPanel } from "./components/MethodologyPanel";
+import { methodologyPanelReducer } from "./components/methodologyPanelState";
 import { DisturbanceDetails } from "./components/DisturbanceDetails";
 import { LandscapeCompareMap } from "./map/LandscapeCompareMap";
 import { RecoveryMap } from "./map/RecoveryMap";
@@ -24,29 +26,38 @@ export default function App() {
   const [mapMode, setMapMode] = useState<MapViewMode>(DEFAULT_MAP_MODE);
   const [recoveryYear, setRecoveryYear] = useState<RecoveryYear>(DEFAULT_RECOVERY_YEAR);
   const [camera, setCamera] = useState<CameraSnapshot>();
+  const [methodologyOpen, dispatchMethodology] = useReducer(methodologyPanelReducer, false);
+  const methodologyButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleSelect = useCallback((disturbance?: DisturbanceProperties) => setSelected(disturbance), []);
   const handleMapError = useCallback((message: string) => setMapError(message), []);
   const handleCameraChange = useCallback((nextCamera: CameraSnapshot) => setCamera(nextCamera), []);
 
   useEffect(() => {
-    void loadSummary().then(setSummary).catch((error: unknown) => {
-      setSummaryError(error instanceof Error ? error.message : "Could not load project summary.");
+    void loadSummary().then(setSummary).catch(() => {
+      setSummaryError("Unable to load project summary");
     });
-    void loadDisturbances().then(setDisturbances).catch((error: unknown) => {
-      setDataError(error instanceof Error ? error.message : "Could not load disturbance geography.");
+    void loadDisturbances().then(setDisturbances).catch(() => {
+      setDataError("Unable to load disturbance data");
     });
     void loadDisturbanceTimeseries()
       .then(setTimeseries)
-      .catch((error: unknown) => {
-        setTimeseriesError(error instanceof Error ? error.message : "Could not load disturbance time series.");
+      .catch(() => {
+        setTimeseriesError("Unable to load disturbance trajectory");
       })
       .finally(() => setTimeseriesLoading(false));
   }, []);
 
   return (
     <main className="app-shell">
-      <AppHeader summary={summary} summaryError={summaryError} mode={mapMode} onModeChange={setMapMode} />
+      <AppHeader
+        summary={summary}
+        summaryError={summaryError}
+        mode={mapMode}
+        onModeChange={setMapMode}
+        methodologyButtonRef={methodologyButtonRef}
+        onMethodology={() => dispatchMethodology({ type: "open" })}
+      />
       {disturbances ? (
         mapMode === "compare" ? (
           <LandscapeCompareMap
@@ -93,8 +104,15 @@ export default function App() {
         />
       )}
       {(summaryError || mapError) && (
-        <div className="runtime-notice" role="status">{summaryError ?? mapError}</div>
+        <div className="runtime-notice" role="alert">{summaryError ?? mapError}</div>
       )}
+      <MethodologyPanel
+        isOpen={methodologyOpen}
+        onClose={() => {
+          dispatchMethodology({ type: "close" });
+          requestAnimationFrame(() => methodologyButtonRef.current?.focus());
+        }}
+      />
     </main>
   );
 }

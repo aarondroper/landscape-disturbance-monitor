@@ -16,13 +16,17 @@ function value(value: number, digits = 2): string {
   return value.toFixed(digits);
 }
 
+export const EMPTY_SELECTION_PRIMARY = "Select a disturbance area to inspect its spectral trajectory.";
+export const EMPTY_SELECTION_SECONDARY = "Hover or click a detected disturbance polygon.";
+
 export function DisturbanceDetails({ disturbance, series, mapMode, mappedYear, timeseriesStatus, timeseriesError }: DisturbanceDetailsProps) {
   if (!disturbance) {
     return (
       <aside className="details-panel details-panel--quiet" aria-label="Disturbance details">
         <span className="panel-kicker">Disturbance geography</span>
         <h2>Select a disturbance area</h2>
-        <p>Hover an outlined area, then click to inspect its browser-ready measurements.</p>
+        <p>{EMPTY_SELECTION_PRIMARY}</p>
+        <p className="empty-selection-hint">{EMPTY_SELECTION_SECONDARY}</p>
       </aside>
     );
   }

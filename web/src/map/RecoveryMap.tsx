@@ -152,9 +152,8 @@ export function RecoveryMap({ disturbances, selectedId, selectedSeries, selected
       selectedIdRef.current = id;
       onSelect(id ? disturbances.features.find((feature) => feature.properties.disturbance_id === id)?.properties : undefined);
     };
-    const handleMapError = (event: maplibregl.ErrorEvent) => {
-      const message = event.error instanceof Error ? event.error.message : String(event.error);
-      onError(`Recovery map error: ${message}`);
+    const handleMapError = () => {
+      onError("Unable to load recovery layer");
     };
     const reportCamera = () => onCameraChange(cameraSnapshotOf(map));
     map.on("error", handleMapError);
@@ -222,6 +221,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedSeries, selected
           <span className="recovery-legend-note">Relative to 2017 NBR baseline</span>
           <div className="recovery-legend-ramp" aria-hidden="true" />
           <div className="recovery-legend-values"><span>≤ 0<br /><small>Below 2018 state</small></span><span>0.5<br /><small>Partway toward baseline</small></span><span>1.0<br /><small>2017 NBR baseline</small></span><span>≥ 1.5<br /><small>Above baseline</small></span></div>
+          <p className="recovery-legend-boundary">Values below 0 and above 1 remain visible.</p>
         </div>
         <div className="recovery-coverage" aria-live="polite">
           {coverage ? <><span>Selected area coverage: <strong>{coverageShortLabel(selectedObservation!.coverage_status)}</strong></span>{coverage.warning && <small>Limited valid imagery</small>}</> : <span>Select a disturbance for area coverage</span>}

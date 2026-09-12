@@ -202,7 +202,7 @@ export function RecoveryTimeline({ series, mappedYear }: RecoveryTimelineProps) 
         <span><i className="legend-swatch legend-swatch--range" /> P10–P90 pixel range</span>
         <span><i className="legend-swatch legend-swatch--poor" /> Poor coverage retained, line breaks</span>
       </div>
-      <p className="timeline-note">Recovery is unbounded; 1.0 marks the 2017 baseline, not “fully recovered.” No interpolation or smoothing.</p>
+      <p className="timeline-note">Recovery is unbounded; 1.0 marks the 2017 spectral baseline, not an ecological condition. No interpolation or smoothing.</p>
     </section>
   );
 }

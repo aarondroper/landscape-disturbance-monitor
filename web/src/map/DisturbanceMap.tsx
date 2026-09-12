@@ -93,10 +93,9 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
       onSelect(id ? disturbances.features.find((feature) => feature.properties.disturbance_id === id)?.properties : undefined);
     };
     const reportCamera = () => onCameraChange(cameraSnapshotOf(map));
-    const handleMapError = (event: maplibregl.ErrorEvent) => {
-      const message = event.error instanceof Error ? event.error.message : String(event.error);
+    const handleMapError = () => {
       setRasterLoaded(true);
-      onError(`Spectral change map error: ${message}`);
+      onError("Unable to load disturbance data");
     };
     const markRasterLoaded = () => {
       if (map.isSourceLoaded(DISTURBANCE_RASTER_SOURCE_ID)) setRasterLoaded(true);
