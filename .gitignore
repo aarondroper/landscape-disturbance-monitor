@@ -32,10 +32,6 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
-# Local agent/workspace metadata
-.agents/
-.codex/
-
 # Reproducible STAC discovery output
 data/inventory/*.json
 
