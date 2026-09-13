@@ -270,7 +270,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
         <small>{comparisonLabels.after.descriptor}</small>
       </div>
       {isLoading && <div className="imagery-loading" role="status">Loading imagery…</div>}
-      <div className="comparison-hint" aria-hidden="true">Drag to compare</div>
+      <div className="comparison-hint">Drag to compare</div>
     </div>
   );
 }

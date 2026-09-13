@@ -1,0 +1,65 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { MAP_VIEW_MODES } from "../map/viewMode";
+
+const appSource = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
+const inspectorSource = readFileSync(new URL("./InspectorPanel.tsx", import.meta.url), "utf8");
+const detailsSource = readFileSync(new URL("./DisturbanceDetails.tsx", import.meta.url), "utf8");
+const recoveryMapSource = readFileSync(new URL("../map/RecoveryMap.tsx", import.meta.url), "utf8");
+const compareMapSource = readFileSync(new URL("../map/LandscapeCompareMap.tsx", import.meta.url), "utf8");
+const mapLayersSource = readFileSync(new URL("../map/mapLayers.ts", import.meta.url), "utf8");
+const cssSource = readFileSync(new URL("../styles/app.css", import.meta.url), "utf8");
+
+describe("unified inspector contract", () => {
+  it("uses one primary inspector and nests all Recovery sections inside it", () => {
+    expect(appSource).toContain("<InspectorPanel");
+    expect(appSource).not.toContain("<DisturbanceDetails");
+    expect(inspectorSource).toContain('className="inspector-panel"');
+    expect(inspectorSource.indexOf("<RecoveryInspector")).toBeLessThan(inspectorSource.indexOf("<DisturbanceDetails"));
+    expect(inspectorSource).toContain('className="recovery-year-control"');
+    expect(inspectorSource).toContain('className="recovery-legend"');
+    expect(inspectorSource).toContain('className="recovery-coverage"');
+    expect(recoveryMapSource).not.toContain("recovery-controls");
+    expect(cssSource).not.toContain(".recovery-controls");
+  });
+
+  it("keeps the empty Recovery state concise and free of duplicate details", () => {
+    expect(inspectorSource).toContain("isRecovery &&");
+    expect(inspectorSource).toContain("showCoverage={!isRecovery}");
+    expect(detailsSource).toContain("EMPTY_SELECTION_PRIMARY");
+    expect(detailsSource).toContain("Select a disturbance area to inspect its spectral trajectory.");
+  });
+
+  it("preserves selected Recovery metrics, coverage context, and trajectory", () => {
+    for (const label of ["Area", "2017 NBR", "2018 NBR", "2017–2018 dNBR", "2026 spectral recovery"]) {
+      expect(detailsSource).toContain(label);
+    }
+    expect(inspectorSource).toContain("Selected area coverage");
+    expect(detailsSource).toContain("<RecoveryTimeline");
+  });
+
+  it("keeps selected details connected to all three map modes", () => {
+    expect(appSource.match(/selectedId=\{selected\?\.disturbance_id\}/g)).toHaveLength(3);
+    expect(appSource).toContain('mapMode={mapMode}');
+    expect(MAP_VIEW_MODES).toEqual(["compare", "disturbance", "recovery"]);
+  });
+
+  it("keeps Compare labels and an accessible swipe hint with safe layout treatment", () => {
+    expect(compareMapSource).toContain("comparisonLabels.before");
+    expect(compareMapSource).toContain("comparisonLabels.after");
+    expect(compareMapSource).toContain('className="comparison-hint"');
+    expect(compareMapSource).not.toContain('className="comparison-hint" aria-hidden="true"');
+    expect(cssSource).toContain("--project-panel-width");
+    expect(cssSource).toContain("--inspector-width");
+    expect(cssSource).toContain(".imagery-label--before { top: 142px; left: calc(20px + var(--project-panel-width)");
+  });
+
+  it("keeps map framing and thematic display configuration in place", () => {
+    expect(recoveryMapSource).toContain("padding: { top: 96, right: 360, bottom: 72, left: 32 }");
+    expect(compareMapSource).toContain("padding: { top: 96, right: 360, bottom: 72, left: 32 }");
+    expect(cssSource).toContain("#6b4c3b 0%");
+    expect(cssSource).toContain("#2f6f68 100%");
+    expect(cssSource).toContain("#466f6b 0%");
+    expect(mapLayersSource).toContain("raster-opacity");
+  });
+});

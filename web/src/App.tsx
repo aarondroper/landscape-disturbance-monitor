@@ -4,7 +4,7 @@ import type { DisturbanceCollection, DisturbanceProperties, DisturbanceSeriesLoo
 import { AppHeader } from "./components/AppHeader";
 import { MethodologyPanel } from "./components/MethodologyPanel";
 import { methodologyPanelReducer } from "./components/methodologyPanelState";
-import { DisturbanceDetails } from "./components/DisturbanceDetails";
+import { InspectorPanel } from "./components/InspectorPanel";
 import { LandscapeCompareMap } from "./map/LandscapeCompareMap";
 import { RecoveryMap } from "./map/RecoveryMap";
 import { DisturbanceMap } from "./map/DisturbanceMap";
@@ -81,10 +81,8 @@ export default function App() {
           <RecoveryMap
             disturbances={disturbances}
             selectedId={selected?.disturbance_id}
-            selectedSeries={selected ? timeseries?.[selected.disturbance_id] : undefined}
             selectedYear={recoveryYear}
             initialCamera={camera}
-            onYearChange={setRecoveryYear}
             onSelect={handleSelect}
             onError={handleMapError}
             onCameraChange={handleCameraChange}
@@ -94,11 +92,13 @@ export default function App() {
         <div className="map-placeholder" role="status">{dataError ?? "Loading disturbance landscape…"}</div>
       )}
       {disturbances && (
-        <DisturbanceDetails
+        <InspectorPanel
           disturbance={selected}
           series={selected ? timeseries?.[selected.disturbance_id] : undefined}
           mapMode={mapMode}
           mappedYear={mapMode === "recovery" ? recoveryYear : undefined}
+          recoveryYear={recoveryYear}
+          onRecoveryYearChange={setRecoveryYear}
           timeseriesStatus={timeseriesLoading ? "loading" : timeseriesError ? "error" : "ready"}
           timeseriesError={timeseriesError}
         />

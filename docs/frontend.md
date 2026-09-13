@@ -58,6 +58,11 @@ with Compare, but does not display the swipe controller. A small shared camera
 snapshot (center, zoom, bearing, pitch) is captured on map movement and applied
 when switching modes, so switching views does not reset the working extent.
 
+All three modes use one opaque right-side inspector surface for selection
+content. Recovery places its year control, spectral recovery legend, selected-
+year coverage context, disturbance summary, and annual trajectory in that same
+scrollable surface; it does not render a separate floating controls panel.
+
 The application loads `/data/summary.json`, `/data/disturbances.geojson`, and
 `/data/disturbance-timeseries.json` once at startup. The time-series package is
 parsed into an in-memory lookup keyed by `disturbance_id`; selection only reads

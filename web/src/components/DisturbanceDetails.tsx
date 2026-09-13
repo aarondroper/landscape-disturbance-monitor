@@ -8,6 +8,7 @@ interface DisturbanceDetailsProps {
   series?: DisturbanceSeries;
   mapMode: MapViewMode;
   mappedYear?: number;
+  showCoverage?: boolean;
   timeseriesStatus: "loading" | "ready" | "error";
   timeseriesError?: string;
 }
@@ -19,15 +20,15 @@ function value(value: number, digits = 2): string {
 export const EMPTY_SELECTION_PRIMARY = "Select a disturbance area to inspect its spectral trajectory.";
 export const EMPTY_SELECTION_SECONDARY = "Hover or click a detected disturbance polygon.";
 
-export function DisturbanceDetails({ disturbance, series, mapMode, mappedYear, timeseriesStatus, timeseriesError }: DisturbanceDetailsProps) {
+export function DisturbanceDetails({ disturbance, series, mapMode, mappedYear, showCoverage = true, timeseriesStatus, timeseriesError }: DisturbanceDetailsProps) {
   if (!disturbance) {
     return (
-      <aside className="details-panel details-panel--quiet" aria-label="Disturbance details">
+      <section className="details-section details-section--quiet" aria-label="Disturbance details">
         <span className="panel-kicker">Disturbance geography</span>
         <h2>Select a disturbance area</h2>
         <p>{EMPTY_SELECTION_PRIMARY}</p>
         <p className="empty-selection-hint">{EMPTY_SELECTION_SECONDARY}</p>
-      </aside>
+      </section>
     );
   }
 
@@ -39,7 +40,7 @@ export function DisturbanceDetails({ disturbance, series, mapMode, mappedYear, t
   );
   const coverageStatus = mappedObservation?.coverage_status ?? disturbance.recovery_2026_coverage_status;
   return (
-    <aside className={`details-panel${mapMode === "recovery" ? " details-panel--recovery" : ""}`} aria-label={`Details for ${disturbance.disturbance_id}`}>
+    <section className="details-section" aria-label={`Details for ${disturbance.disturbance_id}`}>
       <div className="panel-heading">
         <span className="panel-kicker">Selected disturbance</span>
         <span className="feature-id">{disturbance.disturbance_id}</span>
@@ -51,12 +52,12 @@ export function DisturbanceDetails({ disturbance, series, mapMode, mappedYear, t
         <div><dt>2017–2018 dNBR</dt><dd>{value(disturbance.dnbr_median, 4)}</dd></div>
         <div><dt>2026 spectral recovery</dt><dd>{formatSpectralRecovery(disturbance.recovery_2026_median)}</dd></div>
       </dl>
-      <div className={`coverage coverage--${coverageStatus.toLowerCase()}`}>
+      {showCoverage && <div className={`coverage coverage--${coverageStatus.toLowerCase()}`}>
         <span className="coverage-label">{coverageYear} data coverage</span>
         <strong>{coverage.label}</strong>
-      </div>
+      </div>}
       <p className="qualifier">Spectral recovery relative to the 2017 NBR baseline.</p>
-      {coverage.warning && (
+      {showCoverage && coverage.warning && (
         <p className="coverage-warning" role="status">Limited valid imagery for this year.</p>
       )}
       <div className="timeline-section">
@@ -67,6 +68,6 @@ export function DisturbanceDetails({ disturbance, series, mapMode, mappedYear, t
           <p className="timeline-message" role="status">No annual trajectory is available for this selection.</p>
         )}
       </div>
-    </aside>
+    </section>
   );
 }

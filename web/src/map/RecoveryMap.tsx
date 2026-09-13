@@ -3,8 +3,8 @@ import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
 import { cogProtocol, setColorFunction } from "@geomatico/maplibre-cog-protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
-import { AFTER_IMAGERY_YEAR, calculateBounds, coverageDisplay, coverageShortLabel, observationForYear, RECOVERY_YEARS, type RecoveryYear } from "../data/loadData";
-import type { DisturbanceCollection, DisturbanceProperties, DisturbanceSeries } from "../data/types";
+import { AFTER_IMAGERY_YEAR, calculateBounds, RECOVERY_YEARS, type RecoveryYear } from "../data/loadData";
+import type { DisturbanceCollection, DisturbanceProperties } from "../data/types";
 import { cameraSnapshotOf, type CameraSnapshot } from "./camera";
 import { recoveryColorFunction } from "./recoveryColor";
 import {
@@ -29,10 +29,8 @@ maplibregl.setWorkerUrl(workerUrl);
 interface RecoveryMapProps {
   disturbances: DisturbanceCollection;
   selectedId?: string;
-  selectedSeries?: DisturbanceSeries;
   selectedYear: RecoveryYear;
   initialCamera?: CameraSnapshot;
-  onYearChange: (year: RecoveryYear) => void;
   onSelect: (disturbance?: DisturbanceProperties) => void;
   onError: (message: string) => void;
   onCameraChange: (camera: CameraSnapshot) => void;
@@ -44,7 +42,7 @@ interface ActiveRaster {
   layerId: string;
 }
 
-export function RecoveryMap({ disturbances, selectedId, selectedSeries, selectedYear, initialCamera, onYearChange, onSelect, onError, onCameraChange }: RecoveryMapProps) {
+export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCamera, onSelect, onError, onCameraChange }: RecoveryMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapReadyRef = useRef(false);
@@ -192,8 +190,6 @@ export function RecoveryMap({ disturbances, selectedId, selectedSeries, selected
     };
   }, [disturbances, onCameraChange, onError, onSelect, updateRecoveryRaster]);
 
-  const selectedObservation = observationForYear(selectedSeries, selectedYear);
-  const coverage = selectedObservation ? coverageDisplay(selectedObservation.coverage_status, selectedObservation.reporting_recommended) : undefined;
   return (
     <div ref={containerRef} className="recovery-map" aria-label="Annual spectral recovery map">
       <div className="recovery-label" aria-label={`${selectedYear} spectral recovery`}>
@@ -201,32 +197,6 @@ export function RecoveryMap({ disturbances, selectedId, selectedSeries, selected
         <small>SPECTRAL RECOVERY</small>
       </div>
       <div className="recovery-background-label">2018 reference imagery</div>
-      <section className="recovery-controls" aria-label="Recovery map controls">
-        <label className="recovery-year-control">
-          <span className="panel-kicker">Recovery year</span>
-          <strong>{selectedYear}</strong>
-          <input
-            type="range"
-            min={RECOVERY_YEARS[0]}
-            max={RECOVERY_YEARS[RECOVERY_YEARS.length - 1]}
-            step="1"
-            value={selectedYear}
-            aria-label="Annual recovery map year"
-            onChange={(event) => onYearChange(Number(event.target.value) as RecoveryYear)}
-          />
-          <span className="recovery-year-range"><span>2017</span><span>2026</span></span>
-        </label>
-        <div className="recovery-legend" aria-label="Spectral recovery legend">
-          <strong>Spectral recovery</strong>
-          <span className="recovery-legend-note">Relative to 2017 NBR baseline</span>
-          <div className="recovery-legend-ramp" aria-hidden="true" />
-          <div className="recovery-legend-values"><span>≤ 0<br /><small>Below 2018 state</small></span><span>0.5<br /><small>Partway toward baseline</small></span><span>1.0<br /><small>2017 NBR baseline</small></span><span>≥ 1.5<br /><small>Above baseline</small></span></div>
-          <p className="recovery-legend-boundary">Values below 0 and above 1 remain visible.</p>
-        </div>
-        <div className="recovery-coverage" aria-live="polite">
-          {coverage ? <><span>Selected area coverage: <strong>{coverageShortLabel(selectedObservation!.coverage_status)}</strong></span>{coverage.warning && <small>Limited valid imagery</small>}</> : <span>Select a disturbance for area coverage</span>}
-        </div>
-      </section>
       {loadingYear && <div className="imagery-loading recovery-loading" role="status">Loading {loadingYear} recovery…</div>}
     </div>
   );
