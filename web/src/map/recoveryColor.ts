@@ -1,4 +1,4 @@
-export const RECOVERY_ALPHA = 224;
+export const RECOVERY_ALPHA = 232;
 
 export const RECOVERY_COLOR_STOPS = [
   { value: 0, color: "#6b4c3b" },

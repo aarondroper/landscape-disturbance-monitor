@@ -16,6 +16,8 @@ export const RECOVERY_BACKGROUND_SOURCE_ID = "recovery-reference-2018";
 export const RECOVERY_BACKGROUND_LAYER_ID = "recovery-reference-2018-layer";
 export const DISTURBANCE_RASTER_SOURCE_ID = "dnbr-2017-2018";
 export const DISTURBANCE_RASTER_LAYER_ID = "dnbr-2017-2018-layer";
+export const RECOVERY_BACKGROUND_OPACITY = 0.52;
+export const RECOVERY_LAYER_OPACITY = 0.95;
 
 export const comparisonLabels = {
   before: { year: BEFORE_IMAGERY_YEAR, descriptor: "PRE-DISTURBANCE" },
@@ -94,7 +96,7 @@ export function recoveryBackgroundLayer(): {
     id: RECOVERY_BACKGROUND_LAYER_ID,
     source: RECOVERY_BACKGROUND_SOURCE_ID,
     type: "raster",
-    paint: { "raster-opacity": 0.42, "raster-fade-duration": 0 },
+    paint: { "raster-opacity": RECOVERY_BACKGROUND_OPACITY, "raster-fade-duration": 0 },
   };
 }
 
@@ -103,7 +105,7 @@ export function recoveryLayer(year: number) {
     id: recoveryLayerId(year),
     source: recoverySourceId(year),
     type: "raster" as const,
-    paint: { "raster-opacity": 0.92, "raster-fade-duration": 0 },
+    paint: { "raster-opacity": RECOVERY_LAYER_OPACITY, "raster-fade-duration": 0 },
   };
 }
 

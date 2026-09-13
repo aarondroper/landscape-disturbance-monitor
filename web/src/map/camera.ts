@@ -1,5 +1,13 @@
 import type * as maplibregl from "maplibre-gl";
 
+/** Shared initial framing for Compare, Disturbance, and Recovery. */
+export const MAP_FIT_PADDING = {
+  top: 88,
+  right: 348,
+  bottom: 64,
+  left: 24,
+};
+
 export interface CameraSnapshot {
   center: maplibregl.LngLatLike;
   zoom: number;

@@ -16,7 +16,13 @@ import {
   imagerySource,
   imagerySourceId,
   INITIAL_DIVIDER_PERCENT,
+  RECOVERY_BACKGROUND_OPACITY,
+  RECOVERY_LAYER_OPACITY,
+  recoveryBackgroundLayer,
+  recoveryLayer,
 } from "./mapLayers";
+import { MAP_FIT_PADDING } from "./camera";
+import { RECOVERY_ALPHA, RECOVERY_COLOR_STOPS } from "./recoveryColor";
 
 describe("comparison map configuration", () => {
   it("uses the 2017 before and 2018 after RGB COG assets", () => {
@@ -85,5 +91,27 @@ describe("fixed spectral-change map configuration", () => {
     const source = readFileSync(new URL("./DisturbanceMap.tsx", import.meta.url), "utf8");
     expect(source).not.toMatch(/burn[- ]?severity|severity/i);
     expect(source).not.toMatch(/type=["']range["']|recovery-coverage|rasters\/nbr/i);
+  });
+});
+
+describe("shared visual framing and Recovery display configuration", () => {
+  it("uses one modest fit padding across all map modes", () => {
+    expect(MAP_FIT_PADDING).toEqual({ top: 88, right: 348, bottom: 64, left: 24 });
+  });
+
+  it("strengthens Recovery context without changing its data source", () => {
+    expect(recoveryBackgroundLayer().paint["raster-opacity"]).toBe(RECOVERY_BACKGROUND_OPACITY);
+    expect(RECOVERY_BACKGROUND_OPACITY).toBe(0.52);
+    expect(recoveryLayer(2026).paint["raster-opacity"]).toBe(RECOVERY_LAYER_OPACITY);
+    expect(RECOVERY_LAYER_OPACITY).toBe(0.95);
+    expect(RECOVERY_ALPHA).toBe(232);
+    expect(RECOVERY_COLOR_STOPS.map(({ value }) => value)).toEqual([0, 0.5, 1, 1.5]);
+    expect(RECOVERY_COLOR_STOPS[0].value).toBeLessThan(RECOVERY_COLOR_STOPS[1].value);
+    expect(RECOVERY_COLOR_STOPS[1].value).toBeLessThan(RECOVERY_COLOR_STOPS[2].value);
+    expect(RECOVERY_COLOR_STOPS[2].value).toBeLessThan(RECOVERY_COLOR_STOPS[3].value);
+  });
+
+  it("preserves the fixed Disturbance context opacity", () => {
+    expect(disturbanceBackgroundLayer().paint["raster-opacity"]).toBe(0.38);
   });
 });

@@ -9,14 +9,14 @@ interface RecoveryTimelineProps {
 }
 
 const WIDTH = 360;
-const HEIGHT = 304;
+const HEIGHT = 320;
 const PLOT_LEFT = 35;
 const PLOT_RIGHT = 8;
 const PLOT_WIDTH = WIDTH - PLOT_LEFT - PLOT_RIGHT;
 const NBR_TOP = 25;
 const NBR_BOTTOM = 91;
 const RECOVERY_TOP = 132;
-const RECOVERY_BOTTOM = 231;
+const RECOVERY_BOTTOM = 240;
 const YEARS = Array.from({ length: 10 }, (_, index) => 2017 + index);
 
 function xFor(index: number): number {
@@ -179,7 +179,7 @@ export function RecoveryTimeline({ series, mappedYear }: RecoveryTimelineProps) 
           </g>
           <g className="timeline-years-axis" aria-hidden="true">
             {YEARS.map((year, index) => (
-              <text key={year} x={xFor(index)} y="263" textAnchor="middle" className={index % 2 === 0 || index === YEARS.length - 1 ? "" : "timeline-year-hidden"}>
+              <text key={year} x={xFor(index)} y="273" textAnchor="middle" className={index % 2 === 0 || index === YEARS.length - 1 ? "" : "timeline-year-hidden"}>
                 {year}
               </text>
             ))}

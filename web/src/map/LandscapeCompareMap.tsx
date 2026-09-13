@@ -21,7 +21,7 @@ import {
 import { replaceMirroredFeatureState, setMirroredFeatureState } from "./interactionState";
 import { cleanupComparisonResources } from "./comparisonLifecycle";
 import type { CameraSnapshot } from "./camera";
-import { cameraSnapshotOf } from "./camera";
+import { cameraSnapshotOf, MAP_FIT_PADDING } from "./camera";
 
 maplibregl.addProtocol("cog", cogProtocol);
 maplibregl.setWorkerUrl(workerUrl);
@@ -161,7 +161,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
         afterMap.jumpTo(initialCameraRef.current);
       } else {
         beforeMap.fitBounds([[west, south], [east, north]], {
-          padding: { top: 96, right: 360, bottom: 72, left: 32 },
+          padding: MAP_FIT_PADDING,
           maxZoom: 11,
           duration: 0,
         });

@@ -7,6 +7,7 @@ const inspectorSource = readFileSync(new URL("./InspectorPanel.tsx", import.meta
 const detailsSource = readFileSync(new URL("./DisturbanceDetails.tsx", import.meta.url), "utf8");
 const recoveryMapSource = readFileSync(new URL("../map/RecoveryMap.tsx", import.meta.url), "utf8");
 const compareMapSource = readFileSync(new URL("../map/LandscapeCompareMap.tsx", import.meta.url), "utf8");
+const disturbanceMapSource = readFileSync(new URL("../map/DisturbanceMap.tsx", import.meta.url), "utf8");
 const mapLayersSource = readFileSync(new URL("../map/mapLayers.ts", import.meta.url), "utf8");
 const cssSource = readFileSync(new URL("../styles/app.css", import.meta.url), "utf8");
 
@@ -55,11 +56,29 @@ describe("unified inspector contract", () => {
   });
 
   it("keeps map framing and thematic display configuration in place", () => {
-    expect(recoveryMapSource).toContain("padding: { top: 96, right: 360, bottom: 72, left: 32 }");
-    expect(compareMapSource).toContain("padding: { top: 96, right: 360, bottom: 72, left: 32 }");
+    expect(recoveryMapSource).toContain("padding: MAP_FIT_PADDING");
+    expect(compareMapSource).toContain("padding: MAP_FIT_PADDING");
+    expect(disturbanceMapSource).toContain("padding: MAP_FIT_PADDING");
+    for (const mapSource of [recoveryMapSource, compareMapSource, disturbanceMapSource]) {
+      expect(mapSource).toContain("calculateBounds(disturbances)");
+    }
     expect(cssSource).toContain("#6b4c3b 0%");
     expect(cssSource).toContain("#2f6f68 100%");
     expect(cssSource).toContain("#466f6b 0%");
     expect(mapLayersSource).toContain("raster-opacity");
+  });
+
+  it("keeps the Recovery legend wording and trajectory labels intact", () => {
+    for (const label of ["Below 2018 state", "Partway toward baseline", "2017 NBR baseline", "Above baseline"]) {
+      expect(inspectorSource).toContain(label);
+    }
+    for (const label of ["2017 baseline", "Post-disturbance baseline", "NBR median", "Recovery median"]) {
+      expect(readFileSync(new URL("./RecoveryTimeline.tsx", import.meta.url), "utf8")).toContain(label);
+    }
+  });
+
+  it("keeps the initial selection neutral rather than implying analytical priority", () => {
+    expect(appSource).toContain("useState<DisturbanceProperties>()");
+    expect(appSource).not.toContain('"disturbance-002"');
   });
 });
