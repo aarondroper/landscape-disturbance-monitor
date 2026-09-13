@@ -50,6 +50,10 @@ describe("integrated application shell contract", () => {
     expect(recoverySource).toContain('className="recovery-label"');
     expect(recoverySource).toContain('className="recovery-background-label"');
     expect(cssSource).toContain(".comparison-map, .disturbance-map, .recovery-map, .map-placeholder { inset: 0; border: 0; border-radius: 0; box-shadow: none; }");
+    expect(cssSource).toContain("--map-top-badge-height: 44px");
+    expect(cssSource).toContain("--map-control-top: calc(var(--map-overlay-inset) + var(--map-top-badge-height) + var(--map-control-gap));");
+    expect(cssSource).toContain("@media (min-width: 901px) and (max-width: 1099px)");
+    expect(cssSource).toContain("right: calc(var(--inspector-width) + var(--map-overlay-inset) + var(--map-control-gap));");
   });
 
   it("keeps map controls within the central stage and preserves accessible controls", () => {

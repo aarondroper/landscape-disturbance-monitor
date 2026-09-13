@@ -67,7 +67,11 @@ describe("unified inspector contract", () => {
     expect(compareMapSource).not.toContain('className="comparison-hint" aria-hidden="true"');
     expect(cssSource).toContain("--rail-width: 312px");
     expect(cssSource).toContain("--inspector-width");
-    expect(cssSource).toContain(".imagery-label--before { top: 20px; left: 20px; }");
+    expect(cssSource).toContain("--map-overlay-inset: 16px");
+    expect(cssSource).toContain("--map-control-gap: 10px");
+    expect(cssSource).toContain(".imagery-label--before { top: var(--map-overlay-inset); left: var(--map-overlay-inset); }");
+    expect(cssSource).toContain(".maplibregl-ctrl-top-right { top: var(--map-control-top); right: 0; }");
+    expect(cssSource).toContain(".maplibregl-ctrl-top-right { top: var(--map-overlay-inset); }");
   });
 
   it("keeps map framing and thematic display configuration in place", () => {

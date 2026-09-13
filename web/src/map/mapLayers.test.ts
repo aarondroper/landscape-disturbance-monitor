@@ -74,15 +74,26 @@ describe("comparison map configuration", () => {
     const haloWidth = halo.paint?.["line-width"] as unknown[];
     const selectedWidth = selectedOutline.paint?.["line-width"] as unknown[];
 
-    expect(fillOpacity).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.14, ["boolean", ["feature-state", "hover"], false], 0.18, 0.06]);
+    expect(fillOpacity).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.12, ["boolean", ["feature-state", "hover"], false], 0.18, 0.06]);
     expect(outlineWidth.at(-1)).toBe(0.9);
     expect(outlineWidth.at(-2)).toBe(1.7);
     expect(outlineOpacity.at(-1)).toBe(0.58);
     expect(outlineOpacity.at(-2)).toBe(0.9);
-    expect(haloWidth.at(-2)).toBe(4);
-    expect(selectedWidth.at(-2)).toBe(2.2);
+    expect(haloWidth.at(-2)).toBe(3);
+    expect(selectedWidth.at(-2)).toBe(1.7);
     expect(halo.paint?.["line-color"]).toBe("#202c29");
-    expect(selectedOutline.paint?.["line-color"]).toBe("#edf0e6");
+    expect(halo.paint?.["line-opacity"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.82, 0]);
+    expect(selectedOutline.paint?.["line-color"]).toBe("#d8d9cb");
+    expect(selectedOutline.paint?.["line-opacity"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.94, 0]);
+  });
+
+  it("keeps selected styling unmistakable without using pure white", () => {
+    const [, , halo, selectedOutline] = disturbanceLayers();
+    expect(halo.id).toBe(DISTURBANCE_SELECTED_HALO_LAYER_ID);
+    expect(selectedOutline.id).toBe(DISTURBANCE_SELECTED_OUTLINE_LAYER_ID);
+    expect(selectedOutline.paint?.["line-color"]).not.toBe("#ffffff");
+    expect(selectedOutline.paint?.["line-color"]).not.toBe("#fff");
+    expect(selectedOutline.paint?.["line-width"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 1.7, 0]);
   });
 
   it("lets selected styling win when hover and selected state coexist", () => {

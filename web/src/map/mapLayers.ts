@@ -137,7 +137,7 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
         "fill-opacity": [
           "case",
           ["boolean", ["feature-state", "selected"], false],
-          0.14,
+          0.12,
           ["boolean", ["feature-state", "hover"], false],
           0.18,
           0.06,
@@ -181,8 +181,8 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
       type: "line",
       paint: {
         "line-color": "#202c29",
-        "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 4, 0],
-        "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.9, 0],
+        "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 3, 0],
+        "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.82, 0],
         "line-blur": 0.45,
       },
     },
@@ -191,9 +191,9 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
       source: DISTURBANCE_SOURCE_ID,
       type: "line",
       paint: {
-        "line-color": "#edf0e6",
-        "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 2.2, 0],
-        "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.98, 0],
+        "line-color": "#d8d9cb",
+        "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 1.7, 0],
+        "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.94, 0],
         "line-blur": 0.1,
       },
     },
