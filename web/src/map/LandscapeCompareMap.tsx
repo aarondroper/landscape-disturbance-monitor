@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { cogProtocol } from "@geomatico/maplibre-cog-protocol";
 import { AFTER_IMAGERY_YEAR, BEFORE_IMAGERY_YEAR, calculateBounds } from "../data/loadData";
 import type { DisturbanceCollection, DisturbanceProperties } from "../data/types";
-import { localMapStyle } from "./mapStyle";
+import { localMapStyle, MAP_OVERLAY_SURFACE_COLOR } from "./mapStyle";
 import {
   comparisonLabels,
   DISTURBANCE_FILL_LAYER_ID,
@@ -174,16 +174,16 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
         swiperIcon: "↔",
         theme: "light",
         lightColors: {
-          swiperBackground: "#f7f3eb",
+          swiperBackground: MAP_OVERLAY_SURFACE_COLOR,
           swiperBorder: "rgba(67, 63, 52, 0.42)",
-          lineBackground: "rgba(247, 243, 235, 0.96)",
+          lineBackground: "rgba(250, 248, 242, 0.96)",
         },
         swiperStyle: {
           width: "24px",
           height: "24px",
           boxShadow: "0 2px 8px rgba(55, 49, 37, 0.2)",
           border: "1px solid rgba(67, 63, 52, 0.42)",
-          backgroundColor: "#f7f3eb",
+          backgroundColor: MAP_OVERLAY_SURFACE_COLOR,
         },
       });
       compare.setSlider((comparisonContainer.clientWidth * INITIAL_DIVIDER_PERCENT) / 100);

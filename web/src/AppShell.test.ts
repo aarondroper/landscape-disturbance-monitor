@@ -59,6 +59,14 @@ describe("integrated application shell contract", () => {
     expect(cssSource).toContain(".map-stage { position: relative");
     expect(cssSource).toContain(".maplibregl-ctrl-top-right .maplibregl-ctrl");
     expect(cssSource).toContain(".maplibregl-ctrl-bottom-right .maplibregl-ctrl");
+    expect(cssSource).toContain(".maplibregl-ctrl-attrib");
+  });
+
+  it("shares the dark canvas style across Compare, Disturbance, and Recovery", () => {
+    expect(compareSource.match(/style: localMapStyle/g)).toHaveLength(2);
+    expect(disturbanceSource).toContain("style: localMapStyle");
+    expect(recoverySource).toContain("style: localMapStyle");
+    expect(cssSource).toContain("--map-canvas-bg: #2b3733");
   });
 
   it("preserves analytical layers, palettes, and shared camera constraints", () => {
