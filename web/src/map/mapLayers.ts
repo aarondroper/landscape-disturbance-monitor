@@ -12,6 +12,8 @@ export const INITIAL_DIVIDER_PERCENT = 50;
 export const DISTURBANCE_SOURCE_ID = "disturbances";
 export const DISTURBANCE_FILL_LAYER_ID = "disturbance-fill";
 export const DISTURBANCE_OUTLINE_LAYER_ID = "disturbance-outline";
+export const DISTURBANCE_SELECTED_HALO_LAYER_ID = "disturbance-selected-halo";
+export const DISTURBANCE_SELECTED_OUTLINE_LAYER_ID = "disturbance-selected-outline";
 export const RECOVERY_BACKGROUND_SOURCE_ID = "recovery-reference-2018";
 export const RECOVERY_BACKGROUND_LAYER_ID = "recovery-reference-2018-layer";
 export const DISTURBANCE_RASTER_SOURCE_ID = "dnbr-2017-2018";
@@ -117,7 +119,7 @@ export function disturbanceSource(disturbances: DisturbanceCollection): GeoJSONS
   };
 }
 
-export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecification] {
+export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecification, LineLayerSpecification, LineLayerSpecification] {
   return [
     {
       id: DISTURBANCE_FILL_LAYER_ID,
@@ -127,7 +129,7 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
         "fill-color": [
           "case",
           ["boolean", ["feature-state", "selected"], false],
-          "#c3894c",
+          "#d1dacb",
           ["boolean", ["feature-state", "hover"], false],
           "#b19669",
           "#887f68",
@@ -135,10 +137,10 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
         "fill-opacity": [
           "case",
           ["boolean", ["feature-state", "selected"], false],
-          0.34,
+          0.14,
           ["boolean", ["feature-state", "hover"], false],
-          0.2,
-          0.07,
+          0.18,
+          0.06,
         ],
       },
     },
@@ -150,27 +152,49 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
         "line-color": [
           "case",
           ["boolean", ["feature-state", "selected"], false],
-          "#553e29",
+          "#625f50",
           ["boolean", ["feature-state", "hover"], false],
-          "#70583b",
-          "#6a6655",
+          "#8b704d",
+          "#625f50",
         ],
         "line-width": [
           "case",
           ["boolean", ["feature-state", "selected"], false],
-          2.4,
-          ["boolean", ["feature-state", "hover"], false],
-          1.8,
           1,
+          ["boolean", ["feature-state", "hover"], false],
+          1.7,
+          0.9,
         ],
         "line-opacity": [
           "case",
           ["boolean", ["feature-state", "selected"], false],
-          0.95,
+          0,
           ["boolean", ["feature-state", "hover"], false],
-          0.85,
-          0.68,
+          0.9,
+          0.58,
         ],
+      },
+    },
+    {
+      id: DISTURBANCE_SELECTED_HALO_LAYER_ID,
+      source: DISTURBANCE_SOURCE_ID,
+      type: "line",
+      paint: {
+        "line-color": "#202c29",
+        "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 4, 0],
+        "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.9, 0],
+        "line-blur": 0.45,
+      },
+    },
+    {
+      id: DISTURBANCE_SELECTED_OUTLINE_LAYER_ID,
+      source: DISTURBANCE_SOURCE_ID,
+      type: "line",
+      paint: {
+        "line-color": "#edf0e6",
+        "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 2.2, 0],
+        "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 0.98, 0],
+        "line-blur": 0.1,
       },
     },
   ];

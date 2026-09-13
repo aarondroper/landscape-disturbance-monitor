@@ -19,6 +19,14 @@ describe("mirrored disturbance interaction state", () => {
     expect(after.calls).toEqual([{ id: "disturbance-001", state: { hover: true } }]);
   });
 
+  it("mirrors hover clearing without touching the shared selection", () => {
+    const before = fakeMap();
+    const after = fakeMap();
+    setMirroredFeatureState([before, after], "disturbance-001", "hover", false);
+    expect(before.calls).toEqual([{ id: "disturbance-001", state: { hover: false } }]);
+    expect(after.calls).toEqual(before.calls);
+  });
+
   it("replaces one selected feature on both maps", () => {
     const before = fakeMap();
     const after = fakeMap();

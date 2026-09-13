@@ -45,6 +45,21 @@ describe("unified inspector contract", () => {
     expect(MAP_VIEW_MODES).toEqual(["compare", "disturbance", "recovery"]);
   });
 
+  it("keeps the selected feature visibly configured in every map mode", () => {
+    for (const mapSource of [compareMapSource, disturbanceMapSource, recoveryMapSource]) {
+      expect(mapSource).toContain("disturbanceLayers()");
+      expect(mapSource).toContain("selected: true");
+      expect(mapSource).toContain('map.getCanvas().style.cursor = id ? "pointer" : ""');
+    }
+    expect(compareMapSource).toContain('setMirroredFeatureState(maps, id, "hover", true)');
+    expect(compareMapSource).toContain('replaceMirroredFeatureState(maps, selectedIdRef.current, id, "selected")');
+    expect(compareMapSource).toContain("selected: false");
+    expect(disturbanceMapSource).toContain("selected: false");
+    expect(recoveryMapSource).toContain("selected: false");
+    expect(mapLayersSource).toContain("DISTURBANCE_SELECTED_HALO_LAYER_ID");
+    expect(mapLayersSource).toContain("DISTURBANCE_SELECTED_OUTLINE_LAYER_ID");
+  });
+
   it("keeps Compare labels and an accessible swipe hint with safe layout treatment", () => {
     expect(compareMapSource).toContain("comparisonLabels.before");
     expect(compareMapSource).toContain("comparisonLabels.after");

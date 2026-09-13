@@ -250,7 +250,11 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
   }, [disturbances, onError, onSelect, onCameraChange]);
 
   useEffect(() => {
+    const previousId = selectedIdRef.current;
     selectedIdRef.current = selectedId;
+    if (previousId && previousId !== selectedId) {
+      for (const map of mapsRef.current) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: previousId }, { selected: false });
+    }
     for (const map of mapsRef.current) {
       if (selectedId) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedId }, { selected: true });
     }
