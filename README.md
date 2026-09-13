@@ -5,6 +5,8 @@ Kårböle/Ljusdal in Hälsingland, Sweden. The project uses Sentinel-2 imagery t
 detect a fixed 2017→2018 spectral disturbance and examine spectral recovery
 from 2017 through 2026 in a React, TypeScript, and MapLibre application.
 
+**Live application:** [https://landscape-disturbance-monitor.pages.dev](https://landscape-disturbance-monitor.pages.dev)
+
 ## What it demonstrates
 
 The repository combines cloud-hosted Sentinel-2/STAC discovery, reproducible
@@ -182,6 +184,11 @@ validation appear to have validated generated products.
   real-time or operational monitoring service.
 
 ## Deployment
+
+The frontend shell is currently deployed on Cloudflare Pages at the live
+application URL above. The generated geospatial package is served separately
+from public range-capable object storage. This remains a portfolio case study,
+not a production monitoring service.
 
 The split static deployment model, COG range-request requirements, and local
 validation workflow are described in
