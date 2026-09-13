@@ -5,7 +5,7 @@ const headerSource = readFileSync(new URL("./AppHeader.tsx", import.meta.url), "
 
 describe("application header contract", () => {
   it("keeps the product mark and title in the header", () => {
-    expect(headerSource).toContain('className="brand-mark"');
+    expect(headerSource).toContain('className="app-logo brand-mark"');
     expect(headerSource).toContain("Landscape Disturbance Monitor");
   });
 

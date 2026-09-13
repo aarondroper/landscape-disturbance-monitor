@@ -50,62 +50,66 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <AppHeader
-        summary={summary}
-        summaryError={summaryError}
-        mode={mapMode}
-        onModeChange={setMapMode}
-        methodologyButtonRef={methodologyButtonRef}
-        onMethodology={() => dispatchMethodology({ type: "open" })}
-      />
-      {disturbances ? (
-        mapMode === "compare" ? (
-          <LandscapeCompareMap
-            disturbances={disturbances}
-            selectedId={selected?.disturbance_id}
-            initialCamera={camera}
-            onSelect={handleSelect}
-            onError={handleMapError}
-            onCameraChange={handleCameraChange}
-          />
-        ) : mapMode === "disturbance" ? (
-          <DisturbanceMap
-            disturbances={disturbances}
-            selectedId={selected?.disturbance_id}
-            initialCamera={camera}
-            onSelect={handleSelect}
-            onError={handleMapError}
-            onCameraChange={handleCameraChange}
-          />
-        ) : (
-          <RecoveryMap
-            disturbances={disturbances}
-            selectedId={selected?.disturbance_id}
-            selectedYear={recoveryYear}
-            initialCamera={camera}
-            onSelect={handleSelect}
-            onError={handleMapError}
-            onCameraChange={handleCameraChange}
-          />
-        )
-      ) : (
-        <div className="map-placeholder" role="status">{dataError ?? "Loading disturbance landscape…"}</div>
-      )}
-      {disturbances && (
-        <InspectorPanel
-          disturbance={selected}
-          series={selected ? timeseries?.[selected.disturbance_id] : undefined}
-          mapMode={mapMode}
-          mappedYear={mapMode === "recovery" ? recoveryYear : undefined}
-          recoveryYear={recoveryYear}
-          onRecoveryYearChange={setRecoveryYear}
-          timeseriesStatus={timeseriesLoading ? "loading" : timeseriesError ? "error" : "ready"}
-          timeseriesError={timeseriesError}
+      <div className="app-layout">
+        <AppHeader
+          summary={summary}
+          summaryError={summaryError}
+          mode={mapMode}
+          onModeChange={setMapMode}
+          methodologyButtonRef={methodologyButtonRef}
+          onMethodology={() => dispatchMethodology({ type: "open" })}
         />
-      )}
-      {(summaryError || mapError) && (
-        <div className="runtime-notice" role="alert">{summaryError ?? mapError}</div>
-      )}
+        <section className="map-stage" aria-label="Landscape map stage">
+          {disturbances ? (
+            mapMode === "compare" ? (
+              <LandscapeCompareMap
+                disturbances={disturbances}
+                selectedId={selected?.disturbance_id}
+                initialCamera={camera}
+                onSelect={handleSelect}
+                onError={handleMapError}
+                onCameraChange={handleCameraChange}
+              />
+            ) : mapMode === "disturbance" ? (
+              <DisturbanceMap
+                disturbances={disturbances}
+                selectedId={selected?.disturbance_id}
+                initialCamera={camera}
+                onSelect={handleSelect}
+                onError={handleMapError}
+                onCameraChange={handleCameraChange}
+              />
+            ) : (
+              <RecoveryMap
+                disturbances={disturbances}
+                selectedId={selected?.disturbance_id}
+                selectedYear={recoveryYear}
+                initialCamera={camera}
+                onSelect={handleSelect}
+                onError={handleMapError}
+                onCameraChange={handleCameraChange}
+              />
+            )
+          ) : (
+            <div className="map-placeholder" role="status">{dataError ?? "Loading disturbance landscape…"}</div>
+          )}
+          {(summaryError || mapError) && (
+            <div className="runtime-notice" role="alert">{summaryError ?? mapError}</div>
+          )}
+        </section>
+        {disturbances && (
+          <InspectorPanel
+            disturbance={selected}
+            series={selected ? timeseries?.[selected.disturbance_id] : undefined}
+            mapMode={mapMode}
+            mappedYear={mapMode === "recovery" ? recoveryYear : undefined}
+            recoveryYear={recoveryYear}
+            onRecoveryYearChange={setRecoveryYear}
+            timeseriesStatus={timeseriesLoading ? "loading" : timeseriesError ? "error" : "ready"}
+            timeseriesError={timeseriesError}
+          />
+        )}
+      </div>
       <MethodologyPanel
         isOpen={methodologyOpen}
         onClose={() => {

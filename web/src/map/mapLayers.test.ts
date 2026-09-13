@@ -96,7 +96,7 @@ describe("fixed spectral-change map configuration", () => {
 
 describe("shared visual framing and Recovery display configuration", () => {
   it("uses one modest fit padding across all map modes", () => {
-    expect(MAP_FIT_PADDING).toEqual({ top: 88, right: 348, bottom: 64, left: 24 });
+    expect(MAP_FIT_PADDING).toEqual({ top: 88, right: 24, bottom: 64, left: 24 });
   });
 
   it("strengthens Recovery context without changing its data source", () => {

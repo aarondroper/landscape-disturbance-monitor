@@ -50,9 +50,9 @@ describe("unified inspector contract", () => {
     expect(compareMapSource).toContain("comparisonLabels.after");
     expect(compareMapSource).toContain('className="comparison-hint"');
     expect(compareMapSource).not.toContain('className="comparison-hint" aria-hidden="true"');
-    expect(cssSource).toContain("--project-panel-width");
+    expect(cssSource).toContain("--rail-width: 312px");
     expect(cssSource).toContain("--inspector-width");
-    expect(cssSource).toContain(".imagery-label--before { top: 142px; left: calc(20px + var(--project-panel-width)");
+    expect(cssSource).toContain(".imagery-label--before { top: 20px; left: 20px; }");
   });
 
   it("keeps map framing and thematic display configuration in place", () => {

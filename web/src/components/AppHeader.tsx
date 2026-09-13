@@ -19,9 +19,9 @@ export function AppHeader({ summary, summaryError, mode, onModeChange, methodolo
       : "Loading project summary…";
 
   return (
-    <header className="app-header">
+    <header className="app-sidebar" aria-label="Project and map controls">
       <div className="brand-lockup">
-        <span className="brand-mark" aria-hidden="true">
+        <span className="app-logo brand-mark" aria-hidden="true">
           <svg viewBox="0 0 32 32" role="presentation">
             <path d="M5 24.5 12.5 14l4.2 5.3 3.4-4.2L27 24.5" />
             <path d="M5 26.5h22" />
