@@ -44,6 +44,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
   const hoveredIdRef = useRef<string | undefined>(undefined);
   const compareRef = useRef<Compare | undefined>(undefined);
   const mapsRef = useRef<maplibregl.Map[]>([]);
+  const readyMapsRef = useRef<Set<maplibregl.Map>>(new Set());
   const [loadedYears, setLoadedYears] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -81,9 +82,11 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     });
     resizeObserver.observe(comparisonContainer);
 
-    const readyMaps = new Map<number, maplibregl.Map>();
+    const readyMaps = readyMapsRef.current;
     const mapListeners: Array<() => void> = [];
+    let disposed = false;
     mapListeners.push(() => resizeObserver.disconnect());
+    mapListeners.push(() => readyMaps.clear());
 
     const handleMapError = (year: number) => () => {
       onError(`Unable to load ${year} imagery`);
@@ -92,14 +95,14 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     const updateHover = (id: string | undefined) => {
       const previousId = hoveredIdRef.current;
       if (previousId === id) return;
-      if (previousId) setMirroredFeatureState(maps, previousId, "hover", false);
-      if (id) setMirroredFeatureState(maps, id, "hover", true);
+      if (previousId) setMirroredFeatureState(maps, readyMaps, previousId, "hover", false);
+      if (id) setMirroredFeatureState(maps, readyMaps, id, "hover", true);
       hoveredIdRef.current = id;
       for (const map of maps) map.getCanvas().style.cursor = id ? "pointer" : "";
     };
 
     const selectFeature = (id: string | undefined) => {
-      replaceMirroredFeatureState(maps, selectedIdRef.current, id, "selected");
+      replaceMirroredFeatureState(maps, readyMaps, selectedIdRef.current, id, "selected");
       selectedIdRef.current = id;
       const selected = id ? disturbances.features.find((feature) => feature.properties.disturbance_id === id) : undefined;
       onSelect(selected?.properties);
@@ -123,7 +126,6 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
       });
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
       for (const layer of disturbanceLayers()) map.addLayer(layer);
-      if (selectedIdRef.current) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedIdRef.current }, { selected: true });
 
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
         updateHover(featureId(event));
@@ -229,23 +231,37 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
       const handleErrorForMap = handleMapError(year);
       map.on("error", handleErrorForMap);
       mapListeners.push(() => map.off("error", handleErrorForMap));
-      map.once("load", () => {
+      const handleLoad = () => {
+        if (disposed) return;
         addMapContent(map, year);
-        readyMaps.set(year, map);
+        markMapReady();
+      };
+      const markMapReady = () => {
+        if (disposed) return;
+        if (!map.isStyleLoaded() || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
+        readyMaps.add(map);
+        if (selectedIdRef.current) setMirroredFeatureState([map], readyMaps, selectedIdRef.current, "selected", true);
+        if (hoveredIdRef.current) setMirroredFeatureState([map], readyMaps, hoveredIdRef.current, "hover", true);
         initializeCompare();
-      });
+      };
+      map.on("styledata", markMapReady);
+      mapListeners.push(() => map.off("styledata", markMapReady));
+      map.once("load", handleLoad);
+      mapListeners.push(() => map.off("load", handleLoad));
     };
 
     initializeMap(beforeMap, BEFORE_IMAGERY_YEAR);
     initializeMap(afterMap, AFTER_IMAGERY_YEAR);
 
     return () => {
+      disposed = true;
       cleanupComparisonResources(compareRef.current, maps, mapListeners);
       compareRef.current = undefined;
       document.documentElement.style.removeProperty("--compare-swiper-bg");
       document.documentElement.style.removeProperty("--compare-swiper-border");
       document.documentElement.style.removeProperty("--compare-line-bg");
       mapsRef.current = [];
+      hoveredIdRef.current = undefined;
     };
   }, [disturbances, onError, onSelect, onCameraChange]);
 
@@ -253,11 +269,9 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     const previousId = selectedIdRef.current;
     selectedIdRef.current = selectedId;
     if (previousId && previousId !== selectedId) {
-      for (const map of mapsRef.current) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: previousId }, { selected: false });
+      setMirroredFeatureState(mapsRef.current, readyMapsRef.current, previousId, "selected", false);
     }
-    for (const map of mapsRef.current) {
-      if (selectedId) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedId }, { selected: true });
-    }
+    if (selectedId) setMirroredFeatureState(mapsRef.current, readyMapsRef.current, selectedId, "selected", true);
   }, [selectedId]);
 
   const isLoading = loadedYears.size < 2;

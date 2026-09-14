@@ -118,11 +118,11 @@ export function RecoveryTimeline({ series, mappedYear }: RecoveryTimelineProps) 
           <g className="timeline-axis-labels" aria-hidden="true">
             <text x="0" y={NBR_TOP + 4}>NBR</text>
             <text x={PLOT_LEFT} y={NBR_TOP + 4} textAnchor="end">1</text>
-            <text x="PLOT_LEFT" y={yFor(0, [-1, 1], NBR_TOP, NBR_BOTTOM) + 4} textAnchor="end">0</text>
-            <text x="PLOT_LEFT" y={NBR_BOTTOM + 4} textAnchor="end">−1</text>
+            <text x={PLOT_LEFT} y={yFor(0, [-1, 1], NBR_TOP, NBR_BOTTOM) + 4} textAnchor="end">0</text>
+            <text x={PLOT_LEFT} y={NBR_BOTTOM + 4} textAnchor="end">−1</text>
             <text x="0" y={RECOVERY_TOP + 4}>Recovery</text>
-            <text x="PLOT_LEFT" y={zeroY + 4} textAnchor="end">0</text>
-            <text x="PLOT_LEFT" y={oneY + 4} textAnchor="end">1</text>
+            <text x={PLOT_LEFT} y={zeroY + 4} textAnchor="end">0</text>
+            <text x={PLOT_LEFT} y={oneY + 4} textAnchor="end">1</text>
             <text className="timeline-reference-label" x={WIDTH - PLOT_RIGHT} y={oneY - 5} textAnchor="end">2017 baseline</text>
             <text className="timeline-reference-label" x={WIDTH - PLOT_RIGHT} y={zeroY + 13} textAnchor="end">Post-disturbance baseline</text>
           </g>

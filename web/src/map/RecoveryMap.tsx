@@ -21,6 +21,7 @@ import {
   recoverySource,
   recoverySourceId,
 } from "./mapLayers";
+import { setDisturbanceFeatureState } from "./interactionState";
 import { localMapStyle } from "./mapStyle";
 
 maplibregl.addProtocol("cog", cogProtocol);
@@ -109,13 +110,14 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
     selectedIdRef.current = selectedId;
     const map = mapRef.current;
     if (!map) return;
-    if (previousId && previousId !== selectedId) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: previousId }, { selected: false });
-    if (selectedId) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedId }, { selected: true });
+    if (previousId && previousId !== selectedId) setDisturbanceFeatureState(map, mapReadyRef.current, previousId, "selected", false);
+    if (selectedId) setDisturbanceFeatureState(map, mapReadyRef.current, selectedId, "selected", true);
   }, [selectedId]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    let disposed = false;
     const map = new maplibregl.Map({
       container,
       style: localMapStyle,
@@ -139,14 +141,14 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
     };
     const updateHover = (id: string | undefined) => {
       const previousId = hoveredIdRef.current;
-      if (previousId && previousId !== id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: previousId }, { hover: false });
-      if (id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id }, { hover: true });
+      if (previousId && previousId !== id) setDisturbanceFeatureState(map, mapReadyRef.current, previousId, "hover", false);
+      if (id) setDisturbanceFeatureState(map, mapReadyRef.current, id, "hover", true);
       hoveredIdRef.current = id;
       map.getCanvas().style.cursor = id ? "pointer" : "";
     };
     const selectFeature = (id: string | undefined) => {
-      if (selectedIdRef.current && selectedIdRef.current !== id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedIdRef.current }, { selected: false });
-      if (id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id }, { selected: true });
+      if (selectedIdRef.current && selectedIdRef.current !== id) setDisturbanceFeatureState(map, mapReadyRef.current, selectedIdRef.current, "selected", false);
+      if (id) setDisturbanceFeatureState(map, mapReadyRef.current, id, "selected", true);
       selectedIdRef.current = id;
       onSelect(id ? disturbances.features.find((feature) => feature.properties.disturbance_id === id)?.properties : undefined);
     };
@@ -157,12 +159,12 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
     map.on("error", handleMapError);
     map.on("moveend", reportCamera);
 
-    map.once("load", () => {
+    const handleLoad = () => {
+      if (disposed) return;
       map.addSource(RECOVERY_BACKGROUND_SOURCE_ID, imagerySource(AFTER_IMAGERY_YEAR));
       map.addLayer(recoveryBackgroundLayer());
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
       for (const layer of disturbanceLayers()) map.addLayer(layer);
-      if (selectedIdRef.current) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedIdRef.current }, { selected: true });
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => updateHover(featureId(event)));
       map.on("mouseleave", DISTURBANCE_FILL_LAYER_ID, () => updateHover(undefined));
       map.on("click", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -176,15 +178,29 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
         const [west, south, east, north] = calculateBounds(disturbances);
         map.fitBounds([[west, south], [east, north]], { padding: MAP_FIT_PADDING, maxZoom: 11, duration: 0 });
       }
-      mapReadyRef.current = true;
+      markMapReady();
       updateRecoveryRaster(map, selectedYearRef.current);
-    });
+    };
+    const markMapReady = () => {
+      if (disposed) return;
+      if (!map.isStyleLoaded() || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
+      mapReadyRef.current = true;
+      if (selectedIdRef.current) setDisturbanceFeatureState(map, mapReadyRef.current, selectedIdRef.current, "selected", true);
+    };
+    map.on("styledata", markMapReady);
+    map.once("load", handleLoad);
 
     return () => {
+      disposed = true;
       resizeObserver.disconnect();
-      map.remove();
-      mapRef.current = null;
+      map.off("load", handleLoad);
+      map.off("styledata", markMapReady);
+      map.off("error", handleMapError);
+      map.off("moveend", reportCamera);
       mapReadyRef.current = false;
+      hoveredIdRef.current = undefined;
+      mapRef.current = null;
+      map.remove();
       activeRasterRef.current = undefined;
       for (const year of RECOVERY_YEARS) setColorFunction(recoveryCogUrl(year), undefined);
     };

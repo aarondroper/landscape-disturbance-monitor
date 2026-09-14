@@ -19,6 +19,7 @@ import {
   disturbanceLayers,
   imagerySource,
 } from "./mapLayers";
+import { setDisturbanceFeatureState } from "./interactionState";
 import { localMapStyle } from "./mapStyle";
 
 maplibregl.addProtocol("cog", cogProtocol);
@@ -36,6 +37,7 @@ interface DisturbanceMapProps {
 export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSelect, onError, onCameraChange }: DisturbanceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const mapReadyRef = useRef(false);
   const selectedIdRef = useRef(selectedId);
   const hoveredIdRef = useRef<string | undefined>(undefined);
   const initialCameraRef = useRef(initialCamera);
@@ -45,14 +47,15 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
     const previousId = selectedIdRef.current;
     selectedIdRef.current = selectedId;
     const map = mapRef.current;
-    if (!map || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
-    if (previousId && previousId !== selectedId) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: previousId }, { selected: false });
-    if (selectedId) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedId }, { selected: true });
+    if (!map) return;
+    if (previousId && previousId !== selectedId) setDisturbanceFeatureState(map, mapReadyRef.current, previousId, "selected", false);
+    if (selectedId) setDisturbanceFeatureState(map, mapReadyRef.current, selectedId, "selected", true);
   }, [selectedId]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    let disposed = false;
 
     const map = new maplibregl.Map({
       container,
@@ -80,15 +83,15 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
     };
     const updateHover = (id: string | undefined) => {
       const previousId = hoveredIdRef.current;
-      if (previousId && previousId !== id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: previousId }, { hover: false });
-      if (id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id }, { hover: true });
+      if (previousId && previousId !== id) setDisturbanceFeatureState(map, mapReadyRef.current, previousId, "hover", false);
+      if (id) setDisturbanceFeatureState(map, mapReadyRef.current, id, "hover", true);
       hoveredIdRef.current = id;
       map.getCanvas().style.cursor = id ? "pointer" : "";
     };
     const selectFeature = (id: string | undefined) => {
       const previousId = selectedIdRef.current;
-      if (previousId && previousId !== id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: previousId }, { selected: false });
-      if (id) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id }, { selected: true });
+      if (previousId && previousId !== id) setDisturbanceFeatureState(map, mapReadyRef.current, previousId, "selected", false);
+      if (id) setDisturbanceFeatureState(map, mapReadyRef.current, id, "selected", true);
       selectedIdRef.current = id;
       onSelect(id ? disturbances.features.find((feature) => feature.properties.disturbance_id === id)?.properties : undefined);
     };
@@ -108,14 +111,14 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
     map.on("moveend", reportCamera);
     map.on("sourcedata", handleSourceData);
     map.on("idle", markRasterLoaded);
-    map.once("load", () => {
+    const handleLoad = () => {
+      if (disposed) return;
       map.addSource("disturbance-reference-2018", imagerySource(AFTER_IMAGERY_YEAR));
       map.addLayer(disturbanceBackgroundLayer());
       map.addSource(DISTURBANCE_RASTER_SOURCE_ID, dnbrSource());
       map.addLayer(disturbanceRasterLayer());
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
       for (const layer of disturbanceLayers("disturbance")) map.addLayer(layer);
-      if (selectedIdRef.current) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedIdRef.current }, { selected: true });
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => updateHover(featureId(event)));
       map.on("mouseleave", DISTURBANCE_FILL_LAYER_ID, () => updateHover(undefined));
       map.on("click", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -129,14 +132,30 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
         const [west, south, east, north] = calculateBounds(disturbances);
         map.fitBounds([[west, south], [east, north]], { padding: MAP_FIT_PADDING, maxZoom: 11, duration: 0 });
       }
-    });
+      markMapReady();
+    };
+    const markMapReady = () => {
+      if (disposed) return;
+      if (!map.isStyleLoaded() || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
+      mapReadyRef.current = true;
+      if (selectedIdRef.current) setDisturbanceFeatureState(map, mapReadyRef.current, selectedIdRef.current, "selected", true);
+    };
+    map.on("styledata", markMapReady);
+    map.once("load", handleLoad);
 
     return () => {
+      disposed = true;
       resizeObserver.disconnect();
+      map.off("load", handleLoad);
+      map.off("styledata", markMapReady);
+      map.off("error", handleMapError);
+      map.off("moveend", reportCamera);
       map.off("sourcedata", handleSourceData);
       map.off("idle", markRasterLoaded);
-      map.remove();
+      mapReadyRef.current = false;
+      hoveredIdRef.current = undefined;
       mapRef.current = null;
+      map.remove();
       setColorFunction(cogUrl, undefined);
     };
   }, [disturbances, onCameraChange, onError, onSelect]);
