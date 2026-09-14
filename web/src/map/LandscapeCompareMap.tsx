@@ -20,7 +20,7 @@ import {
 } from "./mapLayers";
 import { replaceMirroredFeatureState, setMirroredFeatureState } from "./interactionState";
 import { cleanupComparisonResources } from "./comparisonLifecycle";
-import { applyInitialCompareCamera } from "./compareCamera";
+import { createCompareCameraInitializer, hasValidMapDimensions } from "./compareCamera";
 import type { CameraSnapshot } from "./camera";
 import { cameraSnapshotOf } from "./camera";
 
@@ -84,9 +84,13 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     afterMap.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     afterMap.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
 
+    const cameraInitializer = createCompareCameraInitializer(beforeMap, afterMap);
+    let compareInteractionInitialized = false;
+    let initializeCompare = () => undefined;
     const resizeObserver = new ResizeObserver(() => {
       beforeMap.resize();
       afterMap.resize();
+      initializeCompare();
     });
     resizeObserver.observe(comparisonContainer);
 
@@ -163,36 +167,10 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
       mapListeners.push(() => map.off("idle", markImageryLoaded));
     };
 
-    const initializeCompare = () => {
-      if (readyMaps.size !== 2 || compareRef.current || compareCameraInitializedRef.current) return;
-
-      beforeMap.resize();
-      afterMap.resize();
-
-      const compare = new Compare(beforeMap, afterMap, comparisonContainer, {
-        orientation: "vertical",
-        mousemove: false,
-        swiperIcon: "↔",
-        theme: "light",
-        lightColors: {
-          swiperBackground: MAP_OVERLAY_SURFACE_COLOR,
-          swiperBorder: "rgba(67, 63, 52, 0.42)",
-          lineBackground: "rgba(250, 248, 242, 0.96)",
-        },
-        swiperStyle: {
-          width: "24px",
-          height: "24px",
-          boxShadow: "0 2px 8px rgba(55, 49, 37, 0.2)",
-          border: "1px solid rgba(67, 63, 52, 0.42)",
-          backgroundColor: MAP_OVERLAY_SURFACE_COLOR,
-        },
-      });
-      compare.setSlider((comparisonContainer.clientWidth * INITIAL_DIVIDER_PERCENT) / 100);
-      compareRef.current = compare;
-
-      applyInitialCompareCamera(beforeMap, afterMap, disturbances, initialCameraRef.current);
-      compareCameraInitializedRef.current = true;
-
+    const setupCompareInteraction = () => {
+      if (compareInteractionInitialized || !compareCameraInitializedRef.current || !compareRef.current) return;
+      compareInteractionInitialized = true;
+      const compare = compareRef.current;
       const reportCamera = () => onCameraChange(cameraSnapshotOf(afterMap));
       afterMap.on("moveend", reportCamera);
       mapListeners.push(() => afterMap.off("moveend", reportCamera));
@@ -228,6 +206,49 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
         swiper.removeEventListener("keydown", handleKeyDown);
         compare.off("slideend", handleSlideEnd);
       });
+    };
+
+    initializeCompare = () => {
+      if (readyMaps.size !== 2) return;
+
+      beforeMap.resize();
+      afterMap.resize();
+      if (!compareRef.current) {
+        if (!hasValidMapDimensions(comparisonContainer, beforeMap.getContainer(), afterMap.getContainer())) return;
+        const compare = new Compare(beforeMap, afterMap, comparisonContainer, {
+          orientation: "vertical",
+          mousemove: false,
+          swiperIcon: "↔",
+          theme: "light",
+          lightColors: {
+            swiperBackground: MAP_OVERLAY_SURFACE_COLOR,
+            swiperBorder: "rgba(67, 63, 52, 0.42)",
+            lineBackground: "rgba(250, 248, 242, 0.96)",
+          },
+          swiperStyle: {
+            width: "24px",
+            height: "24px",
+            boxShadow: "0 2px 8px rgba(55, 49, 37, 0.2)",
+            border: "1px solid rgba(67, 63, 52, 0.42)",
+            backgroundColor: MAP_OVERLAY_SURFACE_COLOR,
+          },
+        });
+        compare.setSlider((comparisonContainer.clientWidth * INITIAL_DIVIDER_PERCENT) / 100);
+        compareRef.current = compare;
+      }
+
+      if (!compareCameraInitializedRef.current) {
+        const camera = cameraInitializer.tryInitialize({
+          mapsReady: readyMaps.size === 2,
+          compareReady: compareRef.current !== undefined,
+          dimensionsReady: hasValidMapDimensions(comparisonContainer, beforeMap.getContainer(), afterMap.getContainer()),
+          disturbances,
+          initialCamera: initialCameraRef.current,
+        });
+        if (!camera) return;
+        compareCameraInitializedRef.current = true;
+      }
+      setupCompareInteraction();
     };
 
     const initializeMap = (map: maplibregl.Map, year: number) => {

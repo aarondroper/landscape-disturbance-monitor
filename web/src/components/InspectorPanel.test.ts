@@ -77,7 +77,7 @@ describe("unified inspector contract", () => {
   it("keeps map framing and thematic display configuration in place", () => {
     expect(recoveryMapSource).toContain("fitInitialDisturbanceCamera(map, disturbances)");
     expect(disturbanceMapSource).toContain("fitInitialDisturbanceCamera(map, disturbances)");
-    expect(compareMapSource).toContain("applyInitialCompareCamera(beforeMap, afterMap, disturbances, initialCameraRef.current)");
+    expect(compareMapSource).toContain("cameraInitializer.tryInitialize");
     expect(cameraSource).toContain("calculateBounds(disturbances)");
     expect(cameraSource).toContain("INITIAL_FIT_ZOOM_OFFSET = 0.35");
     expect(cameraSource).toContain("map.resize()");

@@ -36,8 +36,10 @@ export interface InitialFitMap {
 }
 
 /** Fit the shared initial view to disturbance geography, then tighten it modestly. */
-export function fitInitialDisturbanceCamera(map: InitialFitMap, disturbances: DisturbanceCollection): void {
-  const [west, south, east, north] = calculateBounds(disturbances);
+export function fitInitialDisturbanceCamera(map: InitialFitMap, disturbances: DisturbanceCollection | undefined): boolean {
+  const bounds = calculateBounds(disturbances);
+  if (!bounds) return false;
+  const [west, south, east, north] = bounds;
   map.resize();
   map.fitBounds([[west, south], [east, north]], {
     padding: MAP_FIT_PADDING,
@@ -52,6 +54,7 @@ export function fitInitialDisturbanceCamera(map: InitialFitMap, disturbances: Di
     bearing: map.getBearing(),
     pitch: map.getPitch(),
   });
+  return true;
 }
 
 export interface CameraSnapshot {
