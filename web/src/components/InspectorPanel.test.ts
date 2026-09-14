@@ -9,7 +9,6 @@ const recoveryMapSource = readFileSync(new URL("../map/RecoveryMap.tsx", import.
 const compareMapSource = readFileSync(new URL("../map/LandscapeCompareMap.tsx", import.meta.url), "utf8");
 const disturbanceMapSource = readFileSync(new URL("../map/DisturbanceMap.tsx", import.meta.url), "utf8");
 const mapLayersSource = readFileSync(new URL("../map/mapLayers.ts", import.meta.url), "utf8");
-const cameraSource = readFileSync(new URL("../map/camera.ts", import.meta.url), "utf8");
 const timelineSource = readFileSync(new URL("./RecoveryTimeline.tsx", import.meta.url), "utf8");
 const cssSource = readFileSync(new URL("../styles/app.css", import.meta.url), "utf8");
 
@@ -52,8 +51,8 @@ describe("unified inspector contract", () => {
       expect(mapSource).toContain("disturbanceLayers(");
       expect(mapSource).toContain('map.getCanvas().style.cursor = id ? "pointer" : ""');
     }
-    expect(compareMapSource).toContain('setMirroredFeatureState(maps, readyMaps, id, "hover", true)');
-    expect(compareMapSource).toContain('replaceMirroredFeatureState(maps, readyMaps, selectedIdRef.current, id, "selected")');
+    expect(compareMapSource).toContain('setMirroredFeatureState(maps, id, "hover", true)');
+    expect(compareMapSource).toContain('replaceMirroredFeatureState(maps, selectedIdRef.current, id, "selected")');
     expect(disturbanceMapSource).toContain('"selected", false');
     expect(recoveryMapSource).toContain('"selected", false');
     expect(mapLayersSource).toContain("DISTURBANCE_SELECTED_HALO_LAYER_ID");
@@ -74,13 +73,22 @@ describe("unified inspector contract", () => {
     expect(cssSource).toContain(".maplibregl-ctrl-top-right { top: var(--map-overlay-inset); }");
   });
 
+  it("keeps Compare on the known-good two-map lifecycle without experimental camera machinery", () => {
+    expect(compareMapSource.match(/new maplibregl\.Map/g)).toHaveLength(2);
+    expect(compareMapSource).toContain("const [west, south, east, north] = bounds;");
+    expect(compareMapSource).toContain("maxZoom: 11");
+    expect(compareMapSource).toContain("new Compare(beforeMap, afterMap, comparisonContainer");
+    expect(compareMapSource).toContain("compare.setSlider");
+    for (const removedSymbol of ["compareCameraInitializedRef", "readyMapsRef", "createCompareCameraInitializer", "hasValidMapDimensions"]) {
+      expect(compareMapSource).not.toContain(removedSymbol);
+    }
+  });
+
   it("keeps map framing and thematic display configuration in place", () => {
-    expect(recoveryMapSource).toContain("fitInitialDisturbanceCamera(map, disturbances)");
-    expect(disturbanceMapSource).toContain("fitInitialDisturbanceCamera(map, disturbances)");
-    expect(compareMapSource).toContain("cameraInitializer.tryInitialize");
-    expect(cameraSource).toContain("calculateBounds(disturbances)");
-    expect(cameraSource).toContain("INITIAL_FIT_ZOOM_OFFSET = 0.35");
-    expect(cameraSource).toContain("map.resize()");
+    for (const mapSource of [recoveryMapSource, compareMapSource, disturbanceMapSource]) {
+      expect(mapSource).toContain("padding: MAP_FIT_PADDING");
+      expect(mapSource).toContain("calculateBounds(disturbances)");
+    }
     expect(cssSource).toContain("#6b4c3b 0%");
     expect(cssSource).toContain("#2f6f68 100%");
     expect(cssSource).toContain("#52736e 0%");
@@ -97,17 +105,13 @@ describe("unified inspector contract", () => {
   });
 
   it("guards map feature-state operations by explicit readiness in all modes", () => {
-    expect(compareMapSource).toContain("readyMapsRef");
+    expect(compareMapSource).toContain("setDisturbanceFeatureState");
     expect(compareMapSource).toContain('map.once("load", handleLoad)');
-    expect(compareMapSource).toContain("readyMaps.add(map)");
-    expect(disturbanceMapSource).toContain("mapReadyRef");
-    expect(recoveryMapSource).toContain("mapReadyRef");
+    expect(compareMapSource).toContain("readyMaps.set(year, map)");
     expect(disturbanceMapSource).toContain("selectedIdRef.current");
     expect(recoveryMapSource).toContain("selectedIdRef.current");
     expect(compareMapSource).toContain("setMirroredFeatureState");
-    for (const mapSource of [compareMapSource, disturbanceMapSource, recoveryMapSource]) {
-      expect(mapSource).not.toMatch(/map\.setFeatureState\(/);
-    }
+    expect(compareMapSource).not.toMatch(/map\.setFeatureState\(/);
     expect(disturbanceMapSource).toContain("setDisturbanceFeatureState");
     expect(recoveryMapSource).toContain("setDisturbanceFeatureState");
   });

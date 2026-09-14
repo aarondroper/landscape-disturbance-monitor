@@ -3,9 +3,9 @@ import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
 import { cogProtocol, setColorFunction } from "@geomatico/maplibre-cog-protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
-import { AFTER_IMAGERY_YEAR, RECOVERY_YEARS, type RecoveryYear } from "../data/loadData";
+import { AFTER_IMAGERY_YEAR, calculateBounds, RECOVERY_YEARS, type RecoveryYear } from "../data/loadData";
 import type { DisturbanceCollection, DisturbanceProperties } from "../data/types";
-import { cameraSnapshotOf, fitInitialDisturbanceCamera, type CameraSnapshot } from "./camera";
+import { cameraSnapshotOf, MAP_FIT_PADDING, type CameraSnapshot } from "./camera";
 import { recoveryColorFunction } from "./recoveryColor";
 import {
   DISTURBANCE_FILL_LAYER_ID,
@@ -110,8 +110,8 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
     selectedIdRef.current = selectedId;
     const map = mapRef.current;
     if (!map) return;
-    if (previousId && previousId !== selectedId) setDisturbanceFeatureState(map, mapReadyRef.current, previousId, "selected", false);
-    if (selectedId) setDisturbanceFeatureState(map, mapReadyRef.current, selectedId, "selected", true);
+    if (previousId && previousId !== selectedId) setDisturbanceFeatureState(map, previousId, "selected", false);
+    if (selectedId) setDisturbanceFeatureState(map, selectedId, "selected", true);
   }, [selectedId]);
 
   useEffect(() => {
@@ -141,14 +141,14 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
     };
     const updateHover = (id: string | undefined) => {
       const previousId = hoveredIdRef.current;
-      if (previousId && previousId !== id) setDisturbanceFeatureState(map, mapReadyRef.current, previousId, "hover", false);
-      if (id) setDisturbanceFeatureState(map, mapReadyRef.current, id, "hover", true);
+      if (previousId && previousId !== id) setDisturbanceFeatureState(map, previousId, "hover", false);
+      if (id) setDisturbanceFeatureState(map, id, "hover", true);
       hoveredIdRef.current = id;
       map.getCanvas().style.cursor = id ? "pointer" : "";
     };
     const selectFeature = (id: string | undefined) => {
-      if (selectedIdRef.current && selectedIdRef.current !== id) setDisturbanceFeatureState(map, mapReadyRef.current, selectedIdRef.current, "selected", false);
-      if (id) setDisturbanceFeatureState(map, mapReadyRef.current, id, "selected", true);
+      if (selectedIdRef.current && selectedIdRef.current !== id) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", false);
+      if (id) setDisturbanceFeatureState(map, id, "selected", true);
       selectedIdRef.current = id;
       onSelect(id ? disturbances.features.find((feature) => feature.properties.disturbance_id === id)?.properties : undefined);
     };
@@ -175,7 +175,8 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
         if (map.queryRenderedFeatures(event.point, { layers: [DISTURBANCE_FILL_LAYER_ID] }).length === 0) selectFeature(undefined);
       });
       if (!initialCameraRef.current) {
-        fitInitialDisturbanceCamera(map, disturbances);
+        const [west, south, east, north] = calculateBounds(disturbances);
+        map.fitBounds([[west, south], [east, north]], { padding: MAP_FIT_PADDING, maxZoom: 11, duration: 0 });
       }
       markMapReady();
       updateRecoveryRaster(map, selectedYearRef.current);
@@ -184,7 +185,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
       if (disposed) return;
       if (!map.isStyleLoaded() || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
       mapReadyRef.current = true;
-      if (selectedIdRef.current) setDisturbanceFeatureState(map, mapReadyRef.current, selectedIdRef.current, "selected", true);
+      if (selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
     };
     map.on("styledata", markMapReady);
     map.once("load", handleLoad);

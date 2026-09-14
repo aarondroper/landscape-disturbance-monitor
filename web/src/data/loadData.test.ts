@@ -165,23 +165,6 @@ describe("static delivery helpers", () => {
     expect(calculateBounds(collection)).toEqual([14, 60, 17, 63]);
   });
 
-  it("reports unavailable bounds for missing or empty disturbance data", () => {
-    expect(calculateBounds(undefined)).toBeUndefined();
-    expect(calculateBounds({ type: "FeatureCollection", features: [] })).toBeUndefined();
-  });
-
-  it("reports unavailable bounds for malformed geometry instead of a world extent", () => {
-    const malformed = {
-      type: "FeatureCollection" as const,
-      features: [feature("malformed", [[]])],
-    };
-    expect(calculateBounds(malformed)).toBeUndefined();
-    expect(calculateBounds({
-      type: "FeatureCollection",
-      features: [{ ...feature("missing", [[[15, 61], [16, 61], [16, 62], [15, 61]]]), geometry: undefined }],
-    } as never)).toBeUndefined();
-  });
-
   it("maps coverage statuses to restrained labels", () => {
     expect(coverageLabel("GOOD")).toBe("Good coverage");
     expect(coverageLabel("USABLE_WITH_COVERAGE_FLAG")).toBe("Partial coverage");

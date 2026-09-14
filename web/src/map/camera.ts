@@ -1,6 +1,4 @@
 import type * as maplibregl from "maplibre-gl";
-import { calculateBounds } from "../data/loadData";
-import type { DisturbanceCollection } from "../data/types";
 
 /** Shared initial framing for Compare, Disturbance, and Recovery. */
 export const MAP_FIT_PADDING = {
@@ -9,53 +7,6 @@ export const MAP_FIT_PADDING = {
   bottom: 64,
   left: 24,
 };
-
-export const INITIAL_FIT_ZOOM_OFFSET = 0.35;
-const SMALL_VIEWPORT_MAX_WIDTH = 900;
-const SMALL_VIEWPORT_INITIAL_FIT_ZOOM_OFFSET = 0.2;
-const INITIAL_FIT_MAX_ZOOM = 11;
-
-export function initialFitZoomOffsetForViewport(viewportWidth: number): number {
-  return viewportWidth <= SMALL_VIEWPORT_MAX_WIDTH
-    ? SMALL_VIEWPORT_INITIAL_FIT_ZOOM_OFFSET
-    : INITIAL_FIT_ZOOM_OFFSET;
-}
-
-export interface InitialFitMap {
-  resize: () => void;
-  fitBounds: (
-    bounds: [[number, number], [number, number]],
-    options: { padding: typeof MAP_FIT_PADDING; maxZoom: number; duration: 0 },
-  ) => void;
-  getCenter: () => maplibregl.LngLatLike;
-  getZoom: () => number;
-  getContainer: () => HTMLElement;
-  jumpTo: (options: CameraSnapshot) => void;
-  getBearing: () => number;
-  getPitch: () => number;
-}
-
-/** Fit the shared initial view to disturbance geography, then tighten it modestly. */
-export function fitInitialDisturbanceCamera(map: InitialFitMap, disturbances: DisturbanceCollection | undefined): boolean {
-  const bounds = calculateBounds(disturbances);
-  if (!bounds) return false;
-  const [west, south, east, north] = bounds;
-  map.resize();
-  map.fitBounds([[west, south], [east, north]], {
-    padding: MAP_FIT_PADDING,
-    maxZoom: INITIAL_FIT_MAX_ZOOM,
-    duration: 0,
-  });
-
-  const zoom = map.getZoom() + initialFitZoomOffsetForViewport(map.getContainer().clientWidth);
-  map.jumpTo({
-    center: [(west + east) / 2, (south + north) / 2],
-    zoom,
-    bearing: map.getBearing(),
-    pitch: map.getPitch(),
-  });
-  return true;
-}
 
 export interface CameraSnapshot {
   center: maplibregl.LngLatLike;

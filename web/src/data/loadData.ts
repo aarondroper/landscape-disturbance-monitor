@@ -1,5 +1,6 @@
 import type {
   AnnualObservation,
+  Coordinate,
   CoverageStatus,
   DisturbanceCollection,
   DisturbanceSeriesLookup,
@@ -190,49 +191,26 @@ export function createDisturbanceSeriesLookup(
   return { ...packageData.disturbances };
 }
 
-export function calculateBounds(collection: DisturbanceCollection | undefined): [number, number, number, number] | undefined {
-  if (!collection || !Array.isArray(collection.features) || collection.features.length === 0) return undefined;
-
+export function calculateBounds(collection: DisturbanceCollection): [number, number, number, number] {
   let west = Infinity;
   let south = Infinity;
   let east = -Infinity;
   let north = -Infinity;
-  let invalidGeometry = false;
 
-  const visit = (coordinates: unknown): void => {
-    if (!Array.isArray(coordinates) || coordinates.length === 0) {
-      invalidGeometry = true;
-      return;
-    }
-    if (coordinates.every((coordinate) => typeof coordinate === "number")) {
-      const [longitude, latitude] = coordinates;
-      if (
-        coordinates.length < 2 ||
-        !Number.isFinite(longitude) ||
-        !Number.isFinite(latitude) ||
-        longitude < -180 ||
-        longitude > 180 ||
-        latitude < -90 ||
-        latitude > 90
-      ) {
-        invalidGeometry = true;
-        return;
-      }
+  const visit = (coordinates: Coordinate): void => {
+    if (typeof coordinates[0] === "number") {
+      const [longitude, latitude] = coordinates as number[];
       west = Math.min(west, longitude);
       south = Math.min(south, latitude);
       east = Math.max(east, longitude);
       north = Math.max(north, latitude);
       return;
     }
-    if (coordinates.some((coordinate) => typeof coordinate === "number")) {
-      invalidGeometry = true;
-      return;
-    }
-    for (const child of coordinates) visit(child);
+    for (const child of coordinates as Coordinate[]) visit(child);
   };
 
-  for (const feature of collection.features) visit(feature?.geometry?.coordinates);
-  if (invalidGeometry || ![west, south, east, north].every(Number.isFinite)) return undefined;
+  for (const feature of collection.features) visit(feature.geometry.coordinates);
+  if (![west, south, east, north].every(Number.isFinite)) throw new Error("Disturbance data has no coordinates.");
   return [west, south, east, north];
 }
 
