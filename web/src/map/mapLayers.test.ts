@@ -2,6 +2,15 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
   comparisonLabels,
+  DISTURBANCE_CASING_LAYER_ID,
+  DISTURBANCE_HOVER_COLOR,
+  DISTURBANCE_NORMAL_CASING_COLOR,
+  DISTURBANCE_NORMAL_CASING_OPACITY,
+  DISTURBANCE_NORMAL_CASING_WIDTH,
+  DISTURBANCE_NORMAL_COLOR,
+  DISTURBANCE_NORMAL_FILL_OPACITY,
+  DISTURBANCE_NORMAL_LINE_OPACITY,
+  DISTURBANCE_NORMAL_LINE_WIDTH,
   DISTURBANCE_FILL_LAYER_ID,
   DISTURBANCE_RASTER_LAYER_ID,
   DISTURBANCE_RASTER_SOURCE_ID,
@@ -60,6 +69,7 @@ describe("comparison map configuration", () => {
     expect(source).not.toHaveProperty("url");
     expect(disturbanceLayers().map((layer) => layer.id)).toEqual([
       DISTURBANCE_FILL_LAYER_ID,
+      DISTURBANCE_CASING_LAYER_ID,
       DISTURBANCE_OUTLINE_LAYER_ID,
       DISTURBANCE_SELECTED_HALO_LAYER_ID,
       DISTURBANCE_SELECTED_OUTLINE_LAYER_ID,
@@ -69,18 +79,31 @@ describe("comparison map configuration", () => {
   });
 
   it("keeps a clear normal, hover, and selected visual hierarchy", () => {
-    const [fill, outline, halo, selectedOutline] = disturbanceLayers();
+    const [fill, casing, outline, halo, selectedOutline] = disturbanceLayers();
     const fillOpacity = fill.paint?.["fill-opacity"] as unknown[];
+    const fillColor = fill.paint?.["fill-color"] as unknown[];
+    const casingWidth = casing.paint?.["line-width"] as unknown[];
+    const casingOpacity = casing.paint?.["line-opacity"] as unknown[];
     const outlineWidth = outline.paint?.["line-width"] as unknown[];
     const outlineOpacity = outline.paint?.["line-opacity"] as unknown[];
     const haloWidth = halo.paint?.["line-width"] as unknown[];
     const selectedWidth = selectedOutline.paint?.["line-width"] as unknown[];
 
-    expect(fillOpacity).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.12, ["boolean", ["feature-state", "hover"], false], 0.18, 0.06]);
-    expect(outlineWidth.at(-1)).toBe(0.9);
+    expect(fillColor.at(-1)).toBe(DISTURBANCE_NORMAL_COLOR);
+    expect(fillColor.at(-1)).not.toBe("#ff0000");
+    expect(fillOpacity).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.12, ["boolean", ["feature-state", "hover"], false], 0.18, DISTURBANCE_NORMAL_FILL_OPACITY]);
+    expect(casing.id).toBe(DISTURBANCE_CASING_LAYER_ID);
+    expect(casing.paint?.["line-color"]).toBe(DISTURBANCE_NORMAL_CASING_COLOR);
+    expect(casingWidth.at(-1)).toBe(DISTURBANCE_NORMAL_CASING_WIDTH);
+    expect(casingOpacity.at(-1)).toBe(DISTURBANCE_NORMAL_CASING_OPACITY);
+    expect(outline.paint?.["line-color"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], "#625f50", ["boolean", ["feature-state", "hover"], false], DISTURBANCE_HOVER_COLOR, DISTURBANCE_NORMAL_COLOR]);
+    expect(outlineWidth.at(-1)).toBe(DISTURBANCE_NORMAL_LINE_WIDTH);
     expect(outlineWidth.at(-2)).toBe(1.7);
-    expect(outlineOpacity.at(-1)).toBe(0.58);
+    expect(outlineOpacity.at(-1)).toBe(DISTURBANCE_NORMAL_LINE_OPACITY);
     expect(outlineOpacity.at(-2)).toBe(0.9);
+    expect(outlineWidth.at(-2)).toBeGreaterThan(outlineWidth.at(-1) as number);
+    expect(outlineOpacity.at(-2)).toBeGreaterThan(outlineOpacity.at(-1) as number);
+    expect(DISTURBANCE_NORMAL_COLOR).not.toBe("#ff0000");
     expect(haloWidth.at(-2)).toBe(3);
     expect(selectedWidth.at(-2)).toBe(1.7);
     expect(halo.paint?.["line-color"]).toBe("#202c29");
@@ -90,21 +113,23 @@ describe("comparison map configuration", () => {
   });
 
   it("subdues unselected polygons only in Disturbance mode", () => {
-    const [disturbanceFill, disturbanceOutline] = disturbanceLayers("disturbance");
-    const [recoveryFill, recoveryOutline] = disturbanceLayers("recovery");
+    const [disturbanceFill, disturbanceCasing, disturbanceOutline] = disturbanceLayers("disturbance");
+    const [recoveryFill, recoveryCasing, recoveryOutline] = disturbanceLayers("recovery");
     const disturbanceFillOpacity = disturbanceFill.paint?.["fill-opacity"] as unknown[];
-    const disturbanceOutlineOpacity = disturbanceOutline.paint?.["line-opacity"] as unknown[];
+    const disturbanceCasingOpacity = disturbanceCasing.paint?.["line-opacity"] as unknown[];
     const recoveryFillOpacity = recoveryFill.paint?.["fill-opacity"] as unknown[];
-    const recoveryOutlineOpacity = recoveryOutline.paint?.["line-opacity"] as unknown[];
-
-    expect(disturbanceFillOpacity.at(-1)).toBe(0.025);
-    expect(disturbanceOutlineOpacity.at(-1)).toBe(0.18);
+    const recoveryCasingOpacity = recoveryCasing.paint?.["line-opacity"] as unknown[];
+    expect(disturbanceFillOpacity.at(-1)).toBe(0.035);
+    expect(disturbanceCasingOpacity.at(-1)).toBe(DISTURBANCE_NORMAL_CASING_OPACITY);
+    expect(disturbanceOutline.paint?.["line-color"]).toEqual(recoveryOutline.paint?.["line-color"]);
+    expect(disturbanceOutline.paint?.["line-opacity"]).toEqual(recoveryOutline.paint?.["line-opacity"]);
+    expect(disturbanceCasingOpacity).toEqual(recoveryCasingOpacity);
     expect(disturbanceFillOpacity.slice(0, -1)).toEqual(recoveryFillOpacity.slice(0, -1));
-    expect(disturbanceOutlineOpacity.slice(0, -1)).toEqual(recoveryOutlineOpacity.slice(0, -1));
+    expect(disturbanceOutline.paint?.["line-opacity"]).not.toContain(0.18);
   });
 
   it("keeps selected styling unmistakable without using pure white", () => {
-    const [, , halo, selectedOutline] = disturbanceLayers();
+    const [, , , halo, selectedOutline] = disturbanceLayers();
     expect(halo.id).toBe(DISTURBANCE_SELECTED_HALO_LAYER_ID);
     expect(selectedOutline.id).toBe(DISTURBANCE_SELECTED_OUTLINE_LAYER_ID);
     expect(selectedOutline.paint?.["line-color"]).not.toBe("#ffffff");
@@ -113,7 +138,7 @@ describe("comparison map configuration", () => {
   });
 
   it("lets selected styling win when hover and selected state coexist", () => {
-    const [fill, outline] = disturbanceLayers();
+    const [fill, , outline, halo, selectedOutline] = disturbanceLayers();
     const fillColor = fill.paint?.["fill-color"] as unknown[];
     const outlineColor = outline.paint?.["line-color"] as unknown[];
     expect(fillColor[0]).toBe("case");
@@ -121,7 +146,13 @@ describe("comparison map configuration", () => {
     expect(fillColor[3]).toEqual(["boolean", ["feature-state", "hover"], false]);
     expect(outlineColor[1]).toEqual(["boolean", ["feature-state", "selected"], false]);
     expect(outlineColor[3]).toEqual(["boolean", ["feature-state", "hover"], false]);
-    expect(outline.paint?.["line-opacity"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0, ["boolean", ["feature-state", "hover"], false], 0.9, 0.58]);
+    expect(outline.paint?.["line-opacity"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0, ["boolean", ["feature-state", "hover"], false], 0.9, DISTURBANCE_NORMAL_LINE_OPACITY]);
+    expect([fill, outline, halo, selectedOutline].map((layer) => layer.id)).toEqual([
+      DISTURBANCE_FILL_LAYER_ID,
+      DISTURBANCE_OUTLINE_LAYER_ID,
+      DISTURBANCE_SELECTED_HALO_LAYER_ID,
+      DISTURBANCE_SELECTED_OUTLINE_LAYER_ID,
+    ]);
   });
 
   it("does not reference external style URLs or API keys", () => {
