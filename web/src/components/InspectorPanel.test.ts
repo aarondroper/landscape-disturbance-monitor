@@ -47,7 +47,7 @@ describe("unified inspector contract", () => {
 
   it("keeps the selected feature visibly configured in every map mode", () => {
     for (const mapSource of [compareMapSource, disturbanceMapSource, recoveryMapSource]) {
-      expect(mapSource).toContain("disturbanceLayers()");
+      expect(mapSource).toContain("disturbanceLayers(");
       expect(mapSource).toContain("selected: true");
       expect(mapSource).toContain('map.getCanvas().style.cursor = id ? "pointer" : ""');
     }
@@ -83,7 +83,7 @@ describe("unified inspector contract", () => {
     }
     expect(cssSource).toContain("#6b4c3b 0%");
     expect(cssSource).toContain("#2f6f68 100%");
-    expect(cssSource).toContain("#466f6b 0%");
+    expect(cssSource).toContain("#52736e 0%");
     expect(mapLayersSource).toContain("raster-opacity");
   });
 

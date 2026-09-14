@@ -114,7 +114,7 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
       map.addSource(DISTURBANCE_RASTER_SOURCE_ID, dnbrSource());
       map.addLayer(disturbanceRasterLayer());
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
-      for (const layer of disturbanceLayers()) map.addLayer(layer);
+      for (const layer of disturbanceLayers("disturbance")) map.addLayer(layer);
       if (selectedIdRef.current) map.setFeatureState({ source: DISTURBANCE_SOURCE_ID, id: selectedIdRef.current }, { selected: true });
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => updateHover(featureId(event)));
       map.on("mouseleave", DISTURBANCE_FILL_LAYER_ID, () => updateHover(undefined));

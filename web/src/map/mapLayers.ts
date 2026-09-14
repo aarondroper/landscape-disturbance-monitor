@@ -18,6 +18,8 @@ export const RECOVERY_BACKGROUND_SOURCE_ID = "recovery-reference-2018";
 export const RECOVERY_BACKGROUND_LAYER_ID = "recovery-reference-2018-layer";
 export const DISTURBANCE_RASTER_SOURCE_ID = "dnbr-2017-2018";
 export const DISTURBANCE_RASTER_LAYER_ID = "dnbr-2017-2018-layer";
+export const DISTURBANCE_BACKGROUND_OPACITY = 0.24;
+export const DISTURBANCE_RASTER_OPACITY = 0.96;
 export const RECOVERY_BACKGROUND_OPACITY = 0.52;
 export const RECOVERY_LAYER_OPACITY = 0.95;
 
@@ -75,7 +77,7 @@ export function disturbanceRasterLayer() {
     id: DISTURBANCE_RASTER_LAYER_ID,
     source: DISTURBANCE_RASTER_SOURCE_ID,
     type: "raster" as const,
-    paint: { "raster-opacity": 0.92, "raster-fade-duration": 0 },
+    paint: { "raster-opacity": DISTURBANCE_RASTER_OPACITY, "raster-fade-duration": 0 },
   };
 }
 
@@ -84,7 +86,7 @@ export function disturbanceBackgroundLayer() {
     id: "disturbance-reference-2018-layer",
     source: "disturbance-reference-2018",
     type: "raster" as const,
-    paint: { "raster-opacity": 0.38, "raster-fade-duration": 0 },
+    paint: { "raster-opacity": DISTURBANCE_BACKGROUND_OPACITY, "raster-fade-duration": 0 },
   };
 }
 
@@ -119,7 +121,11 @@ export function disturbanceSource(disturbances: DisturbanceCollection): GeoJSONS
   };
 }
 
-export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecification, LineLayerSpecification, LineLayerSpecification] {
+export type DisturbanceLayerMode = "disturbance" | "recovery";
+
+export function disturbanceLayers(mode: DisturbanceLayerMode = "recovery"): [FillLayerSpecification, LineLayerSpecification, LineLayerSpecification, LineLayerSpecification] {
+  const isDisturbanceMode = mode === "disturbance";
+
   return [
     {
       id: DISTURBANCE_FILL_LAYER_ID,
@@ -140,7 +146,7 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
           0.12,
           ["boolean", ["feature-state", "hover"], false],
           0.18,
-          0.06,
+          isDisturbanceMode ? 0.025 : 0.06,
         ],
       },
     },
@@ -171,7 +177,7 @@ export function disturbanceLayers(): [FillLayerSpecification, LineLayerSpecifica
           0,
           ["boolean", ["feature-state", "hover"], false],
           0.9,
-          0.58,
+          isDisturbanceMode ? 0.18 : 0.58,
         ],
       },
     },

@@ -23,8 +23,8 @@ describe("2017–2018 dNBR display color", () => {
     const belowColor = new Uint8ClampedArray(4);
     disturbanceColorFunction(above, aboveColor, { offset: 0, scale: 1, noData: -9999 });
     disturbanceColorFunction(below, belowColor, { offset: 0, scale: 1, noData: -9999 });
-    expect(Array.from(aboveColor)).toEqual([...hexRgb("#6b3d30"), DISTURBANCE_ALPHA.maximum]);
-    expect(Array.from(belowColor)).toEqual([...hexRgb("#466f6b"), DISTURBANCE_ALPHA.quiet]);
+    expect(Array.from(aboveColor)).toEqual([...hexRgb("#80352d"), DISTURBANCE_ALPHA.maximum]);
+    expect(Array.from(belowColor)).toEqual([...hexRgb("#52736e"), DISTURBANCE_ALPHA.quiet]);
     expect(above[0]).toBeCloseTo(1.26);
     expect(below[0]).toBeCloseTo(-0.9);
   });

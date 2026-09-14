@@ -1,16 +1,16 @@
 export const DISTURBANCE_ALPHA = {
-  quiet: 88,
-  threshold: 166,
-  strong: 220,
-  maximum: 228,
+  quiet: 34,
+  threshold: 190,
+  strong: 228,
+  maximum: 240,
 } as const;
 
 export const DISTURBANCE_COLOR_STOPS = [
-  { value: -0.4, color: "#466f6b" },
-  { value: 0, color: "#d8d4c6" },
-  { value: 0.3, color: "#d3ad62" },
-  { value: 0.6, color: "#a76545" },
-  { value: 1, color: "#6b3d30" },
+  { value: -0.4, color: "#52736e" },
+  { value: 0, color: "#b6b4a9" },
+  { value: 0.3, color: "#d39b48" },
+  { value: 0.6, color: "#b65d3f" },
+  { value: 1, color: "#80352d" },
 ] as const;
 
 export const DISTURBANCE_DISPLAY_MIN = DISTURBANCE_COLOR_STOPS[0].value;

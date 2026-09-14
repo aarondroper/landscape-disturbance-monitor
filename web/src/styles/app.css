@@ -213,7 +213,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
 .disturbance-background-label { right: calc(var(--map-overlay-inset) + var(--map-scale-control-width) + var(--map-control-gap)); bottom: var(--map-overlay-inset); padding: 6px 9px; color: #5b6259; font-size: 0.7rem; letter-spacing: 0.04em; pointer-events: none; }
 .disturbance-legend { bottom: var(--map-overlay-inset); left: var(--map-overlay-inset); width: min(342px, calc(100vw - 40px)); padding: 11px 13px 10px; color: #495248; }
 .disturbance-legend strong { display: block; color: #3f4338; font-size: 0.79rem; }
-.disturbance-legend-ramp { position: relative; height: 9px; margin-top: 8px; border-radius: 3px; background: linear-gradient(to right, #466f6b 0%, #d8d4c6 28.571%, #d3ad62 50%, #a76545 71.429%, #6b3d30 100%); }
+.disturbance-legend-ramp { position: relative; height: 9px; margin-top: 8px; border-radius: 3px; background: linear-gradient(to right, #52736e 0%, #b6b4a9 28.571%, #d39b48 50%, #b65d3f 71.429%, #80352d 100%); }
 .disturbance-legend-ramp span { position: absolute; top: -4px; bottom: -4px; left: 50%; border-left: 1px solid rgba(67, 63, 52, 0.72); }
 .disturbance-legend-values { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 5px; font-size: 0.63rem; font-variant-numeric: tabular-nums; }
 .disturbance-legend-values span { line-height: 1.2; }

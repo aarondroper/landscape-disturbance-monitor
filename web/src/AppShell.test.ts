@@ -80,7 +80,7 @@ describe("integrated application shell contract", () => {
     expect(recoverySource).toContain("bearing: initialCameraRef.current?.bearing ?? 0");
     expect(compareSource).toContain("pitch: 0");
     expect(compareSource).toContain("bearing: 0");
-    expect(cssSource).toContain("#466f6b 0%");
+    expect(cssSource).toContain("#52736e 0%");
     expect(cssSource).toContain("#2f6f68 100%");
   });
 

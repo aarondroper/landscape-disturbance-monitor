@@ -9,6 +9,8 @@ import {
   DISTURBANCE_SELECTED_HALO_LAYER_ID,
   DISTURBANCE_SELECTED_OUTLINE_LAYER_ID,
   DISTURBANCE_SOURCE_ID,
+  DISTURBANCE_BACKGROUND_OPACITY,
+  DISTURBANCE_RASTER_OPACITY,
   disturbanceLayers,
   disturbanceRasterLayer,
   disturbanceBackgroundLayer,
@@ -52,7 +54,7 @@ describe("comparison map configuration", () => {
     });
   });
 
-  it("uses one promoted disturbance source and identical layers for both maps", () => {
+  it("uses one promoted disturbance source and shared layer ids for both maps", () => {
     const source = disturbanceSource({ type: "FeatureCollection", features: [] });
     expect(source).toMatchObject({ type: "geojson", promoteId: "disturbance_id" });
     expect(source).not.toHaveProperty("url");
@@ -85,6 +87,20 @@ describe("comparison map configuration", () => {
     expect(halo.paint?.["line-opacity"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.82, 0]);
     expect(selectedOutline.paint?.["line-color"]).toBe("#d8d9cb");
     expect(selectedOutline.paint?.["line-opacity"]).toEqual(["case", ["boolean", ["feature-state", "selected"], false], 0.94, 0]);
+  });
+
+  it("subdues unselected polygons only in Disturbance mode", () => {
+    const [disturbanceFill, disturbanceOutline] = disturbanceLayers("disturbance");
+    const [recoveryFill, recoveryOutline] = disturbanceLayers("recovery");
+    const disturbanceFillOpacity = disturbanceFill.paint?.["fill-opacity"] as unknown[];
+    const disturbanceOutlineOpacity = disturbanceOutline.paint?.["line-opacity"] as unknown[];
+    const recoveryFillOpacity = recoveryFill.paint?.["fill-opacity"] as unknown[];
+    const recoveryOutlineOpacity = recoveryOutline.paint?.["line-opacity"] as unknown[];
+
+    expect(disturbanceFillOpacity.at(-1)).toBe(0.025);
+    expect(disturbanceOutlineOpacity.at(-1)).toBe(0.18);
+    expect(disturbanceFillOpacity.slice(0, -1)).toEqual(recoveryFillOpacity.slice(0, -1));
+    expect(disturbanceOutlineOpacity.slice(0, -1)).toEqual(recoveryOutlineOpacity.slice(0, -1));
   });
 
   it("keeps selected styling unmistakable without using pure white", () => {
@@ -124,7 +140,8 @@ describe("fixed spectral-change map configuration", () => {
       tileSize: 256,
     });
     expect(disturbanceRasterLayer()).toMatchObject({ id: DISTURBANCE_RASTER_LAYER_ID, source: DISTURBANCE_RASTER_SOURCE_ID, type: "raster" });
-    expect(disturbanceBackgroundLayer().paint["raster-opacity"]).toBe(0.38);
+    expect(disturbanceRasterLayer().paint["raster-opacity"]).toBe(DISTURBANCE_RASTER_OPACITY);
+    expect(disturbanceBackgroundLayer().paint["raster-opacity"]).toBe(DISTURBANCE_BACKGROUND_OPACITY);
     expect(JSON.stringify({ source: dnbrSource(), layer: disturbanceRasterLayer() })).not.toMatch(/rasters\/(nbr|recovery)\//i);
     vi.unstubAllGlobals();
   });
@@ -158,6 +175,6 @@ describe("shared visual framing and Recovery display configuration", () => {
   });
 
   it("preserves the fixed Disturbance context opacity", () => {
-    expect(disturbanceBackgroundLayer().paint["raster-opacity"]).toBe(0.38);
+    expect(disturbanceBackgroundLayer().paint["raster-opacity"]).toBe(DISTURBANCE_BACKGROUND_OPACITY);
   });
 });
