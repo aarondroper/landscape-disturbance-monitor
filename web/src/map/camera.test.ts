@@ -35,6 +35,7 @@ describe("shared initial camera", () => {
     const map = {
       resize: () => calls.push("resize"),
       fitBounds: (bounds: unknown, options: unknown) => calls.push({ bounds, options }),
+      getCenter: () => [15.5, 61.9] as [number, number],
       getZoom: () => 9,
       getContainer: () => ({ clientWidth: 1680 } as HTMLElement),
       jumpTo: (options: unknown) => calls.push({ jumpTo: options }),

@@ -21,15 +21,16 @@ export function initialFitZoomOffsetForViewport(viewportWidth: number): number {
     : INITIAL_FIT_ZOOM_OFFSET;
 }
 
-interface InitialFitMap {
+export interface InitialFitMap {
   resize: () => void;
   fitBounds: (
     bounds: [[number, number], [number, number]],
     options: { padding: typeof MAP_FIT_PADDING; maxZoom: number; duration: 0 },
   ) => void;
+  getCenter: () => maplibregl.LngLatLike;
   getZoom: () => number;
   getContainer: () => HTMLElement;
-  jumpTo: (options: { center: [number, number]; zoom: number; bearing: number; pitch: number }) => void;
+  jumpTo: (options: CameraSnapshot) => void;
   getBearing: () => number;
   getPitch: () => number;
 }

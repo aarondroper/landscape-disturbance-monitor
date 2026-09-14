@@ -20,8 +20,9 @@ import {
 } from "./mapLayers";
 import { replaceMirroredFeatureState, setMirroredFeatureState } from "./interactionState";
 import { cleanupComparisonResources } from "./comparisonLifecycle";
+import { applyInitialCompareCamera } from "./compareCamera";
 import type { CameraSnapshot } from "./camera";
-import { cameraSnapshotOf, fitInitialDisturbanceCamera } from "./camera";
+import { cameraSnapshotOf } from "./camera";
 
 maplibregl.addProtocol("cog", cogProtocol);
 maplibregl.setWorkerUrl(workerUrl);
@@ -43,6 +44,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
   const initialCameraRef = useRef(initialCamera);
   const hoveredIdRef = useRef<string | undefined>(undefined);
   const compareRef = useRef<Compare | undefined>(undefined);
+  const compareCameraInitializedRef = useRef(false);
   const mapsRef = useRef<maplibregl.Map[]>([]);
   const readyMapsRef = useRef<Set<maplibregl.Map>>(new Set());
   const [loadedYears, setLoadedYears] = useState<Set<number>>(new Set());
@@ -53,22 +55,28 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     const afterContainer = afterContainerRef.current;
     if (!comparisonContainer || !beforeContainer || !afterContainer) return;
 
+    const constructorCamera = initialCameraRef.current;
+    const constructorCenter = constructorCamera?.center ?? [15.5, 61.9];
+    const constructorZoom = constructorCamera?.zoom ?? 8;
+    const constructorBearing = constructorCamera?.bearing ?? 0;
+    const constructorPitch = constructorCamera?.pitch ?? 0;
+
     const beforeMap = new maplibregl.Map({
       container: beforeContainer,
       style: localMapStyle,
-      center: [15.5, 61.9],
-      zoom: 8,
-      pitch: 0,
-      bearing: 0,
+      center: constructorCenter,
+      zoom: constructorZoom,
+      pitch: constructorPitch,
+      bearing: constructorBearing,
       attributionControl: false,
     });
     const afterMap = new maplibregl.Map({
       container: afterContainer,
       style: localMapStyle,
-      center: [15.5, 61.9],
-      zoom: 8,
-      pitch: 0,
-      bearing: 0,
+      center: constructorCenter,
+      zoom: constructorZoom,
+      pitch: constructorPitch,
+      bearing: constructorBearing,
       attributionControl: false,
     });
     const maps = [beforeMap, afterMap] as const;
@@ -156,14 +164,10 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     };
 
     const initializeCompare = () => {
-      if (readyMaps.size !== 2 || compareRef.current) return;
-      if (initialCameraRef.current) {
-        beforeMap.jumpTo(initialCameraRef.current);
-        afterMap.jumpTo(initialCameraRef.current);
-      } else {
-        fitInitialDisturbanceCamera(beforeMap, disturbances);
-        afterMap.jumpTo(cameraSnapshotOf(beforeMap));
-      }
+      if (readyMaps.size !== 2 || compareRef.current || compareCameraInitializedRef.current) return;
+
+      beforeMap.resize();
+      afterMap.resize();
 
       const compare = new Compare(beforeMap, afterMap, comparisonContainer, {
         orientation: "vertical",
@@ -186,9 +190,13 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
       compare.setSlider((comparisonContainer.clientWidth * INITIAL_DIVIDER_PERCENT) / 100);
       compareRef.current = compare;
 
+      applyInitialCompareCamera(beforeMap, afterMap, disturbances, initialCameraRef.current);
+      compareCameraInitializedRef.current = true;
+
       const reportCamera = () => onCameraChange(cameraSnapshotOf(afterMap));
       afterMap.on("moveend", reportCamera);
       mapListeners.push(() => afterMap.off("moveend", reportCamera));
+      reportCamera();
 
       const swiper = comparisonContainer.querySelector<HTMLElement>(".compare-swiper-vertical");
       if (!swiper) return;
@@ -252,6 +260,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
       disposed = true;
       cleanupComparisonResources(compareRef.current, maps, mapListeners);
       compareRef.current = undefined;
+      compareCameraInitializedRef.current = false;
       document.documentElement.style.removeProperty("--compare-swiper-bg");
       document.documentElement.style.removeProperty("--compare-swiper-border");
       document.documentElement.style.removeProperty("--compare-line-bg");
