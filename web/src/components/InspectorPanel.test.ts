@@ -9,6 +9,7 @@ const recoveryMapSource = readFileSync(new URL("../map/RecoveryMap.tsx", import.
 const compareMapSource = readFileSync(new URL("../map/LandscapeCompareMap.tsx", import.meta.url), "utf8");
 const disturbanceMapSource = readFileSync(new URL("../map/DisturbanceMap.tsx", import.meta.url), "utf8");
 const mapLayersSource = readFileSync(new URL("../map/mapLayers.ts", import.meta.url), "utf8");
+const cameraSource = readFileSync(new URL("../map/camera.ts", import.meta.url), "utf8");
 const timelineSource = readFileSync(new URL("./RecoveryTimeline.tsx", import.meta.url), "utf8");
 const cssSource = readFileSync(new URL("../styles/app.css", import.meta.url), "utf8");
 
@@ -74,12 +75,12 @@ describe("unified inspector contract", () => {
   });
 
   it("keeps map framing and thematic display configuration in place", () => {
-    expect(recoveryMapSource).toContain("padding: MAP_FIT_PADDING");
-    expect(compareMapSource).toContain("padding: MAP_FIT_PADDING");
-    expect(disturbanceMapSource).toContain("padding: MAP_FIT_PADDING");
-    for (const mapSource of [recoveryMapSource, compareMapSource, disturbanceMapSource]) {
-      expect(mapSource).toContain("calculateBounds(disturbances)");
-    }
+    expect(recoveryMapSource).toContain("fitInitialDisturbanceCamera(map, disturbances)");
+    expect(disturbanceMapSource).toContain("fitInitialDisturbanceCamera(map, disturbances)");
+    expect(compareMapSource).toContain("fitInitialDisturbanceCamera(beforeMap, disturbances)");
+    expect(cameraSource).toContain("calculateBounds(disturbances)");
+    expect(cameraSource).toContain("INITIAL_FIT_ZOOM_OFFSET = 0.35");
+    expect(cameraSource).toContain("map.resize()");
     expect(cssSource).toContain("#6b4c3b 0%");
     expect(cssSource).toContain("#2f6f68 100%");
     expect(cssSource).toContain("#52736e 0%");

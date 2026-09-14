@@ -3,9 +3,9 @@ import type { MapLayerMouseEvent, MapSourceDataEvent } from "maplibre-gl";
 import { cogProtocol, setColorFunction } from "@geomatico/maplibre-cog-protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
-import { AFTER_IMAGERY_YEAR, calculateBounds, RECOVERY_YEARS, type RecoveryYear } from "../data/loadData";
+import { AFTER_IMAGERY_YEAR, RECOVERY_YEARS, type RecoveryYear } from "../data/loadData";
 import type { DisturbanceCollection, DisturbanceProperties } from "../data/types";
-import { cameraSnapshotOf, MAP_FIT_PADDING, type CameraSnapshot } from "./camera";
+import { cameraSnapshotOf, fitInitialDisturbanceCamera, type CameraSnapshot } from "./camera";
 import { recoveryColorFunction } from "./recoveryColor";
 import {
   DISTURBANCE_FILL_LAYER_ID,
@@ -175,8 +175,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
         if (map.queryRenderedFeatures(event.point, { layers: [DISTURBANCE_FILL_LAYER_ID] }).length === 0) selectFeature(undefined);
       });
       if (!initialCameraRef.current) {
-        const [west, south, east, north] = calculateBounds(disturbances);
-        map.fitBounds([[west, south], [east, north]], { padding: MAP_FIT_PADDING, maxZoom: 11, duration: 0 });
+        fitInitialDisturbanceCamera(map, disturbances);
       }
       markMapReady();
       updateRecoveryRaster(map, selectedYearRef.current);

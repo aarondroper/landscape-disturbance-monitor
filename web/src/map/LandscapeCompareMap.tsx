@@ -5,7 +5,7 @@ import type { MapLayerMouseEvent } from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useRef, useState } from "react";
 import { cogProtocol } from "@geomatico/maplibre-cog-protocol";
-import { AFTER_IMAGERY_YEAR, BEFORE_IMAGERY_YEAR, calculateBounds } from "../data/loadData";
+import { AFTER_IMAGERY_YEAR, BEFORE_IMAGERY_YEAR } from "../data/loadData";
 import type { DisturbanceCollection, DisturbanceProperties } from "../data/types";
 import { localMapStyle, MAP_OVERLAY_SURFACE_COLOR } from "./mapStyle";
 import {
@@ -21,7 +21,7 @@ import {
 import { replaceMirroredFeatureState, setMirroredFeatureState } from "./interactionState";
 import { cleanupComparisonResources } from "./comparisonLifecycle";
 import type { CameraSnapshot } from "./camera";
-import { cameraSnapshotOf, MAP_FIT_PADDING } from "./camera";
+import { cameraSnapshotOf, fitInitialDisturbanceCamera } from "./camera";
 
 maplibregl.addProtocol("cog", cogProtocol);
 maplibregl.setWorkerUrl(workerUrl);
@@ -157,16 +157,11 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
 
     const initializeCompare = () => {
       if (readyMaps.size !== 2 || compareRef.current) return;
-      const [west, south, east, north] = calculateBounds(disturbances);
       if (initialCameraRef.current) {
         beforeMap.jumpTo(initialCameraRef.current);
         afterMap.jumpTo(initialCameraRef.current);
       } else {
-        beforeMap.fitBounds([[west, south], [east, north]], {
-          padding: MAP_FIT_PADDING,
-          maxZoom: 11,
-          duration: 0,
-        });
+        fitInitialDisturbanceCamera(beforeMap, disturbances);
         afterMap.jumpTo(cameraSnapshotOf(beforeMap));
       }
 
