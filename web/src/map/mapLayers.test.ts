@@ -17,6 +17,7 @@ import {
   DISTURBANCE_OUTLINE_LAYER_ID,
   DISTURBANCE_SELECTED_HALO_LAYER_ID,
   DISTURBANCE_SELECTED_OUTLINE_LAYER_ID,
+  DISTURBANCE_VECTOR_LAYER_IDS,
   DISTURBANCE_SOURCE_ID,
   DISTURBANCE_BACKGROUND_OPACITY,
   DISTURBANCE_RASTER_OPACITY,
@@ -33,6 +34,7 @@ import {
   RECOVERY_LAYER_OPACITY,
   recoveryBackgroundLayer,
   recoveryLayer,
+  setDisturbanceLayersVisible,
 } from "./mapLayers";
 import { MAP_FIT_PADDING } from "./camera";
 import { RECOVERY_ALPHA, RECOVERY_COLOR_STOPS } from "./recoveryColor";
@@ -76,6 +78,22 @@ describe("comparison map configuration", () => {
     ]);
     expect(DISTURBANCE_SOURCE_ID).toBe("disturbances");
     expect(JSON.stringify({ source, layers: disturbanceLayers() })).not.toMatch(/2020|2023|2026|nbr|recovery|dnbr/i);
+  });
+
+  it("toggles only the five disturbance vector layers", () => {
+    const layoutCalls: Array<{ id: string; visibility: string }> = [];
+    const map = {
+      getLayer: (id: string) => id === DISTURBANCE_FILL_LAYER_ID || id === DISTURBANCE_OUTLINE_LAYER_ID ? {} : undefined,
+      setLayoutProperty: (id: string, _property: "visibility", visibility: "visible" | "none") => layoutCalls.push({ id, visibility }),
+    };
+    setDisturbanceLayersVisible(map, false);
+    expect(layoutCalls).toEqual([
+      { id: DISTURBANCE_FILL_LAYER_ID, visibility: "none" },
+      { id: DISTURBANCE_OUTLINE_LAYER_ID, visibility: "none" },
+    ]);
+    expect(DISTURBANCE_VECTOR_LAYER_IDS).toHaveLength(5);
+    setDisturbanceLayersVisible({ getLayer: () => ({}), setLayoutProperty: map.setLayoutProperty }, true);
+    expect(layoutCalls.slice(-5).every(({ visibility }) => visibility === "visible")).toBe(true);
   });
 
   it("keeps a clear normal, hover, and selected visual hierarchy", () => {

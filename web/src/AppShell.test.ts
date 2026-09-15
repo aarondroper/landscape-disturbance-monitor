@@ -29,6 +29,17 @@ describe("integrated application shell contract", () => {
     expect(MAP_VIEW_MODES).toEqual(["compare", "disturbance", "recovery"]);
   });
 
+  it("provides one shared, accessible boundary visibility control below the mode selector", () => {
+    expect(headerSource).toContain('className="mode-switch"');
+    expect(headerSource).toContain('className="boundary-toggle"');
+    expect(headerSource).toContain('type="checkbox"');
+    expect(headerSource).toContain('aria-label="Disturbance boundaries"');
+    expect(headerSource).toContain("checked={disturbanceBoundariesVisible}");
+    expect(appSource).toContain("useState(true)");
+    expect(appSource).toContain("onDisturbanceBoundariesVisibleChange={setDisturbanceBoundariesVisible}");
+    expect(appSource.match(/boundariesVisible=\{disturbanceBoundariesVisible\}/g)).toHaveLength(3);
+  });
+
   it("keeps the unified inspector content and neutral initial selection", () => {
     expect(appSource).toContain("<InspectorPanel");
     expect(inspectorSource).toContain("recovery-year-control");
@@ -49,11 +60,14 @@ describe("integrated application shell contract", () => {
     expect(disturbanceSource).toContain('className="disturbance-background-label"');
     expect(recoverySource).toContain('className="recovery-label"');
     expect(recoverySource).toContain('className="recovery-background-label"');
+    expect(recoverySource).toContain('"bottom-left"');
     expect(cssSource).toContain(".comparison-map, .disturbance-map, .recovery-map, .map-placeholder { inset: 0; border: 0; border-radius: 0; box-shadow: none; }");
     expect(cssSource).toContain("--map-top-badge-height: 44px");
     expect(cssSource).toContain("--map-control-top: calc(var(--map-overlay-inset) + var(--map-top-badge-height) + var(--map-control-gap));");
     expect(cssSource).toContain("@media (min-width: 901px) and (max-width: 1099px)");
     expect(cssSource).toContain("right: calc(var(--inspector-width) + var(--map-overlay-inset) + var(--map-control-gap));");
+    expect(cssSource).toContain("bottom: calc(var(--map-overlay-inset) + var(--map-scale-control-height) + var(--map-overlay-stack-gap))");
+    expect(cssSource).toContain("--map-overlay-stack-gap: 8px");
   });
 
   it("keeps map controls within the central stage and preserves accessible controls", () => {
@@ -82,6 +96,21 @@ describe("integrated application shell contract", () => {
     expect(compareSource).toContain("bearing: 0");
     expect(cssSource).toContain("#52736e 0%");
     expect(cssSource).toContain("#2f6f68 100%");
+  });
+
+  it("keeps boundary visibility separate from analytical rasters and camera setup", () => {
+    expect(disturbanceSource).toContain("setDisturbanceLayersVisible(map, boundariesVisibleRef.current)");
+    expect(recoverySource).toContain("setDisturbanceLayersVisible(map, boundariesVisibleRef.current)");
+    expect(compareSource).toContain("for (const map of mapsRef.current) setDisturbanceLayersVisible(map, boundariesVisible)");
+    expect(disturbanceSource).toContain("if (!boundariesVisibleRef.current) return;");
+    expect(recoverySource).toContain("if (!boundariesVisibleRef.current) return;");
+    expect(compareSource).toContain("if (!boundariesVisibleRef.current) return;");
+    expect(disturbanceSource).toContain("if (boundariesVisibleRef.current && selectedIdRef.current)");
+    expect(recoverySource).toContain("if (boundariesVisibleRef.current && selectedIdRef.current)");
+    expect(compareSource).toContain("if (boundariesVisibleRef.current && selectedIdRef.current)");
+    expect(disturbanceSource).toContain("dnbrSource()");
+    expect(recoverySource).toContain("recoveryLayer(year)");
+    expect(compareSource).toContain("jumpTo(cameraSnapshotOf(beforeMap))");
   });
 
   it("retains the responsive fallback for smaller screens", () => {

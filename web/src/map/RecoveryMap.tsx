@@ -20,6 +20,7 @@ import {
   recoveryLayerId,
   recoverySource,
   recoverySourceId,
+  setDisturbanceLayersVisible,
 } from "./mapLayers";
 import { setDisturbanceFeatureState } from "./interactionState";
 import { localMapStyle } from "./mapStyle";
@@ -35,6 +36,7 @@ interface RecoveryMapProps {
   onSelect: (disturbance?: DisturbanceProperties) => void;
   onError: (message: string) => void;
   onCameraChange: (camera: CameraSnapshot) => void;
+  boundariesVisible: boolean;
 }
 
 interface ActiveRaster {
@@ -43,7 +45,7 @@ interface ActiveRaster {
   layerId: string;
 }
 
-export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCamera, onSelect, onError, onCameraChange }: RecoveryMapProps) {
+export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCamera, onSelect, onError, onCameraChange, boundariesVisible }: RecoveryMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapReadyRef = useRef(false);
@@ -52,7 +54,23 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
   const activeRasterRef = useRef<ActiveRaster | undefined>(undefined);
   const hoveredIdRef = useRef<string | undefined>(undefined);
   const initialCameraRef = useRef(initialCamera);
+  const boundariesVisibleRef = useRef(boundariesVisible);
   const [loadingYear, setLoadingYear] = useState<RecoveryYear>();
+
+  useEffect(() => {
+    const previousVisibility = boundariesVisibleRef.current;
+    boundariesVisibleRef.current = boundariesVisible;
+    const map = mapRef.current;
+    if (!map || previousVisibility === boundariesVisible || !mapReadyRef.current) return;
+    setDisturbanceLayersVisible(map, boundariesVisible);
+    if (!boundariesVisible) {
+      if (hoveredIdRef.current) setDisturbanceFeatureState(map, hoveredIdRef.current, "hover", false);
+      hoveredIdRef.current = undefined;
+      map.getCanvas().style.cursor = "";
+    } else if (selectedIdRef.current) {
+      setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
+    }
+  }, [boundariesVisible]);
 
   const updateRecoveryRaster = useCallback((map: maplibregl.Map, year: RecoveryYear) => {
     const sourceId = recoverySourceId(year);
@@ -110,8 +128,9 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
     selectedIdRef.current = selectedId;
     const map = mapRef.current;
     if (!map) return;
+    if (!boundariesVisibleRef.current) return;
     if (previousId && previousId !== selectedId) setDisturbanceFeatureState(map, previousId, "selected", false);
-    if (selectedId) setDisturbanceFeatureState(map, selectedId, "selected", true);
+    if (boundariesVisibleRef.current && selectedId) setDisturbanceFeatureState(map, selectedId, "selected", true);
   }, [selectedId]);
 
   useEffect(() => {
@@ -129,7 +148,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
     });
     mapRef.current = map;
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
+    map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
 
     const resizeObserver = new ResizeObserver(() => map.resize());
     resizeObserver.observe(container);
@@ -140,6 +159,10 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
       return id === undefined ? undefined : String(id);
     };
     const updateHover = (id: string | undefined) => {
+      if (!boundariesVisibleRef.current) {
+        map.getCanvas().style.cursor = "";
+        return;
+      }
       const previousId = hoveredIdRef.current;
       if (previousId && previousId !== id) setDisturbanceFeatureState(map, previousId, "hover", false);
       if (id) setDisturbanceFeatureState(map, id, "hover", true);
@@ -147,6 +170,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
       map.getCanvas().style.cursor = id ? "pointer" : "";
     };
     const selectFeature = (id: string | undefined) => {
+      if (!boundariesVisibleRef.current) return;
       if (selectedIdRef.current && selectedIdRef.current !== id) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", false);
       if (id) setDisturbanceFeatureState(map, id, "selected", true);
       selectedIdRef.current = id;
@@ -165,6 +189,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
       map.addLayer(recoveryBackgroundLayer());
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
       for (const layer of disturbanceLayers()) map.addLayer(layer);
+      setDisturbanceLayersVisible(map, boundariesVisibleRef.current);
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => updateHover(featureId(event)));
       map.on("mouseleave", DISTURBANCE_FILL_LAYER_ID, () => updateHover(undefined));
       map.on("click", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -172,6 +197,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
         if (id) selectFeature(id);
       });
       map.on("click", (event) => {
+        if (!boundariesVisibleRef.current) return;
         if (map.queryRenderedFeatures(event.point, { layers: [DISTURBANCE_FILL_LAYER_ID] }).length === 0) selectFeature(undefined);
       });
       if (!initialCameraRef.current) {
@@ -185,7 +211,7 @@ export function RecoveryMap({ disturbances, selectedId, selectedYear, initialCam
       if (disposed) return;
       if (!map.isStyleLoaded() || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
       mapReadyRef.current = true;
-      if (selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
+      if (boundariesVisibleRef.current && selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
     };
     map.on("styledata", markMapReady);
     map.once("load", handleLoad);

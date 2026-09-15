@@ -17,6 +17,7 @@ import {
   disturbanceSource,
   disturbanceCogUrl,
   disturbanceLayers,
+  setDisturbanceLayersVisible,
   imagerySource,
 } from "./mapLayers";
 import { setDisturbanceFeatureState } from "./interactionState";
@@ -32,24 +33,42 @@ interface DisturbanceMapProps {
   onSelect: (disturbance?: DisturbanceProperties) => void;
   onError: (message: string) => void;
   onCameraChange: (camera: CameraSnapshot) => void;
+  boundariesVisible: boolean;
 }
 
-export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSelect, onError, onCameraChange }: DisturbanceMapProps) {
+export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSelect, onError, onCameraChange, boundariesVisible }: DisturbanceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapReadyRef = useRef(false);
   const selectedIdRef = useRef(selectedId);
   const hoveredIdRef = useRef<string | undefined>(undefined);
   const initialCameraRef = useRef(initialCamera);
+  const boundariesVisibleRef = useRef(boundariesVisible);
   const [rasterLoaded, setRasterLoaded] = useState(false);
+
+  useEffect(() => {
+    const previousVisibility = boundariesVisibleRef.current;
+    boundariesVisibleRef.current = boundariesVisible;
+    const map = mapRef.current;
+    if (!map || previousVisibility === boundariesVisible || !mapReadyRef.current) return;
+    setDisturbanceLayersVisible(map, boundariesVisible);
+    if (!boundariesVisible) {
+      if (hoveredIdRef.current) setDisturbanceFeatureState(map, hoveredIdRef.current, "hover", false);
+      hoveredIdRef.current = undefined;
+      map.getCanvas().style.cursor = "";
+    } else if (selectedIdRef.current) {
+      setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
+    }
+  }, [boundariesVisible]);
 
   useEffect(() => {
     const previousId = selectedIdRef.current;
     selectedIdRef.current = selectedId;
     const map = mapRef.current;
     if (!map) return;
+    if (!boundariesVisibleRef.current) return;
     if (previousId && previousId !== selectedId) setDisturbanceFeatureState(map, previousId, "selected", false);
-    if (selectedId) setDisturbanceFeatureState(map, selectedId, "selected", true);
+    if (boundariesVisibleRef.current && selectedId) setDisturbanceFeatureState(map, selectedId, "selected", true);
   }, [selectedId]);
 
   useEffect(() => {
@@ -82,6 +101,10 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
       return id === undefined ? undefined : String(id);
     };
     const updateHover = (id: string | undefined) => {
+      if (!boundariesVisibleRef.current) {
+        map.getCanvas().style.cursor = "";
+        return;
+      }
       const previousId = hoveredIdRef.current;
       if (previousId && previousId !== id) setDisturbanceFeatureState(map, previousId, "hover", false);
       if (id) setDisturbanceFeatureState(map, id, "hover", true);
@@ -89,6 +112,7 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
       map.getCanvas().style.cursor = id ? "pointer" : "";
     };
     const selectFeature = (id: string | undefined) => {
+      if (!boundariesVisibleRef.current) return;
       const previousId = selectedIdRef.current;
       if (previousId && previousId !== id) setDisturbanceFeatureState(map, previousId, "selected", false);
       if (id) setDisturbanceFeatureState(map, id, "selected", true);
@@ -119,6 +143,7 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
       map.addLayer(disturbanceRasterLayer());
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
       for (const layer of disturbanceLayers("disturbance")) map.addLayer(layer);
+      setDisturbanceLayersVisible(map, boundariesVisibleRef.current);
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => updateHover(featureId(event)));
       map.on("mouseleave", DISTURBANCE_FILL_LAYER_ID, () => updateHover(undefined));
       map.on("click", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -126,6 +151,7 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
         if (id) selectFeature(id);
       });
       map.on("click", (event) => {
+        if (!boundariesVisibleRef.current) return;
         if (map.queryRenderedFeatures(event.point, { layers: [DISTURBANCE_FILL_LAYER_ID] }).length === 0) selectFeature(undefined);
       });
       if (!initialCameraRef.current) {
@@ -138,7 +164,7 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
       if (disposed) return;
       if (!map.isStyleLoaded() || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
       mapReadyRef.current = true;
-      if (selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
+      if (boundariesVisibleRef.current && selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
     };
     map.on("styledata", markMapReady);
     map.once("load", handleLoad);

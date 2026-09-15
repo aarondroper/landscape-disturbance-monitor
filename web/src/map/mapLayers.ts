@@ -32,6 +32,26 @@ export const DISTURBANCE_NORMAL_LINE_WIDTH = 1.15;
 export const DISTURBANCE_NORMAL_LINE_OPACITY = 0.88;
 export const DISTURBANCE_NORMAL_FILL_OPACITY = 0.06;
 
+export const DISTURBANCE_VECTOR_LAYER_IDS = [
+  DISTURBANCE_FILL_LAYER_ID,
+  DISTURBANCE_CASING_LAYER_ID,
+  DISTURBANCE_OUTLINE_LAYER_ID,
+  DISTURBANCE_SELECTED_HALO_LAYER_ID,
+  DISTURBANCE_SELECTED_OUTLINE_LAYER_ID,
+] as const;
+
+interface DisturbanceLayerVisibilityMap {
+  getLayer: (layerId: string) => unknown;
+  setLayoutProperty: (layerId: string, property: "visibility", value: "visible" | "none") => void;
+}
+
+export function setDisturbanceLayersVisible(map: DisturbanceLayerVisibilityMap, visible: boolean): void {
+  const visibility = visible ? "visible" : "none";
+  for (const layerId of DISTURBANCE_VECTOR_LAYER_IDS) {
+    if (map.getLayer(layerId)) map.setLayoutProperty(layerId, "visibility", visibility);
+  }
+}
+
 export const comparisonLabels = {
   before: { year: BEFORE_IMAGERY_YEAR, descriptor: "PRE-DISTURBANCE" },
   after: { year: AFTER_IMAGERY_YEAR, descriptor: "POST-DISTURBANCE" },

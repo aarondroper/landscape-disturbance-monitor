@@ -24,6 +24,7 @@ export default function App() {
   const [mapError, setMapError] = useState<string>();
   const [selected, setSelected] = useState<DisturbanceProperties>();
   const [mapMode, setMapMode] = useState<MapViewMode>(DEFAULT_MAP_MODE);
+  const [disturbanceBoundariesVisible, setDisturbanceBoundariesVisible] = useState(true);
   const [recoveryYear, setRecoveryYear] = useState<RecoveryYear>(DEFAULT_RECOVERY_YEAR);
   const [camera, setCamera] = useState<CameraSnapshot>();
   const [methodologyOpen, dispatchMethodology] = useReducer(methodologyPanelReducer, false);
@@ -56,6 +57,8 @@ export default function App() {
           summaryError={summaryError}
           mode={mapMode}
           onModeChange={setMapMode}
+          disturbanceBoundariesVisible={disturbanceBoundariesVisible}
+          onDisturbanceBoundariesVisibleChange={setDisturbanceBoundariesVisible}
           methodologyButtonRef={methodologyButtonRef}
           onMethodology={() => dispatchMethodology({ type: "open" })}
         />
@@ -69,6 +72,7 @@ export default function App() {
                 onSelect={handleSelect}
                 onError={handleMapError}
                 onCameraChange={handleCameraChange}
+                boundariesVisible={disturbanceBoundariesVisible}
               />
             ) : mapMode === "disturbance" ? (
               <DisturbanceMap
@@ -78,6 +82,7 @@ export default function App() {
                 onSelect={handleSelect}
                 onError={handleMapError}
                 onCameraChange={handleCameraChange}
+                boundariesVisible={disturbanceBoundariesVisible}
               />
             ) : (
               <RecoveryMap
@@ -88,6 +93,7 @@ export default function App() {
                 onSelect={handleSelect}
                 onError={handleMapError}
                 onCameraChange={handleCameraChange}
+                boundariesVisible={disturbanceBoundariesVisible}
               />
             )
           ) : (

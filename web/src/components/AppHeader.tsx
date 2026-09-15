@@ -7,11 +7,13 @@ interface AppHeaderProps {
   summaryError?: string;
   mode: MapViewMode;
   onModeChange: (mode: MapViewMode) => void;
+  disturbanceBoundariesVisible: boolean;
+  onDisturbanceBoundariesVisibleChange: (visible: boolean) => void;
   methodologyButtonRef: RefObject<HTMLButtonElement | null>;
   onMethodology: () => void;
 }
 
-export function AppHeader({ summary, summaryError, mode, onModeChange, methodologyButtonRef, onMethodology }: AppHeaderProps) {
+export function AppHeader({ summary, summaryError, mode, onModeChange, disturbanceBoundariesVisible, onDisturbanceBoundariesVisibleChange, methodologyButtonRef, onMethodology }: AppHeaderProps) {
   const projectSummary = summary
     ? `${summary.project.disturbance_object_count.toLocaleString("en-US")} detected disturbance areas · ${summary.project.total_analytical_disturbance_area_ha.toLocaleString("en-US")} ha`
     : summaryError
@@ -52,6 +54,20 @@ export function AppHeader({ summary, summaryError, mode, onModeChange, methodolo
           </button>
         ))}
       </div>
+      <label className="boundary-toggle">
+        <span className="boundary-toggle__label">Disturbance boundaries</span>
+        <span className="boundary-toggle__control">
+          <input
+            className="boundary-toggle__input"
+            type="checkbox"
+            checked={disturbanceBoundariesVisible}
+            onChange={(event) => onDisturbanceBoundariesVisibleChange(event.target.checked)}
+            aria-label="Disturbance boundaries"
+          />
+          <span className="boundary-toggle__track" aria-hidden="true"><span className="boundary-toggle__thumb" /></span>
+        </span>
+        <span className="boundary-toggle__state" aria-hidden="true">{disturbanceBoundariesVisible ? "ON" : "OFF"}</span>
+      </label>
     </header>
   );
 }

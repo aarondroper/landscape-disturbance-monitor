@@ -17,6 +17,7 @@ import {
   imagerySource,
   imagerySourceId,
   INITIAL_DIVIDER_PERCENT,
+  setDisturbanceLayersVisible,
 } from "./mapLayers";
 import { replaceMirroredFeatureState, setDisturbanceFeatureState, setMirroredFeatureState } from "./interactionState";
 import { cleanupComparisonResources } from "./comparisonLifecycle";
@@ -33,9 +34,10 @@ interface LandscapeCompareMapProps {
   selectedId?: string;
   initialCamera?: CameraSnapshot;
   onCameraChange: (camera: CameraSnapshot) => void;
+  boundariesVisible: boolean;
 }
 
-export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedId, initialCamera, onCameraChange }: LandscapeCompareMapProps) {
+export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedId, initialCamera, onCameraChange, boundariesVisible }: LandscapeCompareMapProps) {
   const comparisonRef = useRef<HTMLDivElement>(null);
   const beforeContainerRef = useRef<HTMLDivElement>(null);
   const afterContainerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +46,22 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
   const hoveredIdRef = useRef<string | undefined>(undefined);
   const compareRef = useRef<Compare | undefined>(undefined);
   const mapsRef = useRef<maplibregl.Map[]>([]);
+  const boundariesVisibleRef = useRef(boundariesVisible);
   const [loadedYears, setLoadedYears] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const previousVisibility = boundariesVisibleRef.current;
+    boundariesVisibleRef.current = boundariesVisible;
+    if (previousVisibility === boundariesVisible) return;
+    for (const map of mapsRef.current) setDisturbanceLayersVisible(map, boundariesVisible);
+    if (!boundariesVisible) {
+      if (hoveredIdRef.current) setMirroredFeatureState(mapsRef.current, hoveredIdRef.current, "hover", false);
+      hoveredIdRef.current = undefined;
+      for (const map of mapsRef.current) map.getCanvas().style.cursor = "";
+    } else if (selectedIdRef.current) {
+      setMirroredFeatureState(mapsRef.current, selectedIdRef.current, "selected", true);
+    }
+  }, [boundariesVisible]);
 
   useEffect(() => {
     const comparisonContainer = comparisonRef.current;
@@ -90,6 +107,10 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     };
 
     const updateHover = (id: string | undefined) => {
+      if (!boundariesVisibleRef.current) {
+        for (const map of maps) map.getCanvas().style.cursor = "";
+        return;
+      }
       const previousId = hoveredIdRef.current;
       if (previousId === id) return;
       if (previousId) setMirroredFeatureState(maps, previousId, "hover", false);
@@ -99,6 +120,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
     };
 
     const selectFeature = (id: string | undefined) => {
+      if (!boundariesVisibleRef.current) return;
       replaceMirroredFeatureState(maps, selectedIdRef.current, id, "selected");
       selectedIdRef.current = id;
       const selected = id ? disturbances.features.find((feature) => feature.properties.disturbance_id === id) : undefined;
@@ -123,8 +145,9 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
       });
       map.addSource(DISTURBANCE_SOURCE_ID, disturbanceSource(disturbances));
       for (const layer of disturbanceLayers()) map.addLayer(layer);
-      if (selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
-      if (hoveredIdRef.current) setDisturbanceFeatureState(map, hoveredIdRef.current, "hover", true);
+      setDisturbanceLayersVisible(map, boundariesVisibleRef.current);
+      if (boundariesVisibleRef.current && selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
+      if (boundariesVisibleRef.current && hoveredIdRef.current) setDisturbanceFeatureState(map, hoveredIdRef.current, "hover", true);
 
       map.on("mouseenter", DISTURBANCE_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
         updateHover(featureId(event));
@@ -135,6 +158,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
         if (id) selectFeature(id);
       });
       map.on("click", (event) => {
+        if (!boundariesVisibleRef.current) return;
         if (map.queryRenderedFeatures(event.point, { layers: [DISTURBANCE_FILL_LAYER_ID] }).length === 0) {
           selectFeature(undefined);
         }
@@ -256,6 +280,7 @@ export function LandscapeCompareMap({ disturbances, onSelect, onError, selectedI
   useEffect(() => {
     const previousId = selectedIdRef.current;
     selectedIdRef.current = selectedId;
+    if (!boundariesVisibleRef.current) return;
     if (previousId && previousId !== selectedId) {
       setMirroredFeatureState(mapsRef.current, previousId, "selected", false);
     }

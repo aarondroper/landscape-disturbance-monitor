@@ -8,6 +8,8 @@
   --map-overlay-shadow: 0 8px 20px rgba(18, 32, 28, 0.2);
   --map-overlay-inset: 16px;
   --map-control-gap: 10px;
+  --map-overlay-stack-gap: 8px;
+  --map-scale-control-height: 28px;
   --map-top-badge-height: 44px;
   --map-control-top: calc(var(--map-overlay-inset) + var(--map-top-badge-height) + var(--map-control-gap));
   --map-scale-control-width: 120px;
@@ -101,6 +103,17 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
 .mode-switch__button--active { background: var(--panel-bg); color: var(--accent-strong); box-shadow: 0 2px 5px rgba(47, 61, 53, 0.14); font-weight: 750; }
 .mode-switch__button:focus-visible { position: relative; z-index: 1; }
 
+.boundary-toggle { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--ink-muted); cursor: pointer; font-size: 0.72rem; font-weight: 650; line-height: 1.2; }
+.boundary-toggle__label { flex: 1; }
+.boundary-toggle__control { position: relative; display: inline-flex; width: 32px; height: 18px; flex: 0 0 32px; }
+.boundary-toggle__input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; cursor: pointer; opacity: 0; }
+.boundary-toggle__track { display: flex; width: 100%; height: 100%; align-items: center; border: 1px solid rgba(52, 65, 58, 0.32); border-radius: 999px; background: #c3c9c1; padding: 2px; transition: background-color 120ms ease, border-color 120ms ease; }
+.boundary-toggle__thumb { width: 12px; height: 12px; border-radius: 50%; background: #f7f3eb; box-shadow: 0 1px 2px rgba(30, 47, 42, 0.24); transition: transform 120ms ease; }
+.boundary-toggle__input:checked + .boundary-toggle__track { border-color: var(--accent); background: var(--accent); }
+.boundary-toggle__input:checked + .boundary-toggle__track .boundary-toggle__thumb { transform: translateX(14px); }
+.boundary-toggle__input:focus-visible + .boundary-toggle__track { outline: 2px solid var(--accent); outline-offset: 3px; }
+.boundary-toggle__state { min-width: 24px; color: var(--accent-strong); font-size: 0.62rem; font-variant-numeric: tabular-nums; letter-spacing: 0.08em; text-align: right; }
+
 .imagery-label { z-index: 5; display: flex; flex-direction: column; gap: 1px; min-width: 132px; border: 1px solid var(--map-overlay-border); border-radius: 7px; background: var(--map-overlay-bg); box-shadow: var(--map-overlay-shadow); padding: 7px 10px 8px; pointer-events: none; }
 .imagery-label--before { top: var(--map-overlay-inset); left: var(--map-overlay-inset); }
 .imagery-label--after { top: var(--map-overlay-inset); right: var(--map-overlay-inset); text-align: right; }
@@ -179,7 +192,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
 .recovery-label { top: var(--map-overlay-inset); right: var(--map-overlay-inset); display: flex; flex-direction: column; gap: 1px; min-width: 168px; padding: 7px 10px 8px; text-align: right; pointer-events: none; }
 .recovery-label span { color: #30372c; font-size: 1.04rem; font-weight: 720; line-height: 1; }
 .recovery-label small { color: #5e655b; font-size: 0.67rem; letter-spacing: 0.1em; line-height: 1.3; }
-.recovery-background-label { bottom: var(--map-overlay-inset); left: var(--map-overlay-inset); padding: 6px 9px; color: #5b6259; font-size: 0.7rem; letter-spacing: 0.04em; pointer-events: none; }
+.recovery-background-label { bottom: calc(var(--map-overlay-inset) + var(--map-scale-control-height) + var(--map-overlay-stack-gap)); left: var(--map-overlay-inset); padding: 6px 9px; color: #5b6259; font-size: 0.7rem; letter-spacing: 0.04em; pointer-events: none; }
 .recovery-inspector { padding: 13px 0 12px; }
 .recovery-year-control { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 3px 12px; }
 .recovery-year-control .panel-kicker { grid-column: 1; margin: 0; }
@@ -294,6 +307,11 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
   .app-sidebar .mode-switch__button { width: 100%; padding: 10px 12px; color: var(--rail-muted); font-size: 0.77rem; font-weight: 680; text-align: left; }
   .app-sidebar .mode-switch__button:hover { background: rgba(143, 192, 175, 0.1); color: var(--rail-ink); }
   .app-sidebar .mode-switch__button--active { background: rgba(143, 192, 175, 0.24); color: var(--rail-ink); box-shadow: inset 3px 0 0 var(--rail-accent), 0 0 0 1px rgba(143, 192, 175, 0.08); }
+  .app-sidebar .boundary-toggle { margin-top: 12px; color: var(--rail-muted); }
+  .app-sidebar .boundary-toggle__track { border-color: rgba(219, 232, 220, 0.3); background: rgba(8, 25, 23, 0.42); }
+  .app-sidebar .boundary-toggle__input:checked + .boundary-toggle__track { border-color: var(--rail-accent); background: #47766e; }
+  .app-sidebar .boundary-toggle__input:focus-visible + .boundary-toggle__track { outline-color: var(--rail-accent); }
+  .app-sidebar .boundary-toggle__state { color: var(--rail-accent); }
   .map-stage { position: relative; grid-column: 2; grid-row: 1; background: var(--map-canvas-bg); }
   .comparison-map, .disturbance-map, .recovery-map, .map-placeholder { inset: 0; border: 0; border-radius: 0; box-shadow: none; }
   .inspector-panel { position: relative; inset: auto; grid-column: 3; grid-row: 1; z-index: 3; width: auto; height: 100%; max-height: none; border: 0; border-left: 1px solid rgba(52, 65, 58, 0.2); border-radius: 0; box-shadow: -5px 0 18px rgba(47, 61, 53, 0.1); padding: 0 20px 24px; }
@@ -324,7 +342,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
   .inspector-panel { top: auto; right: 12px; bottom: 68px; width: min(var(--inspector-width), calc(100vw - 24px)); max-height: calc(100vh - 190px); }
   .recovery-label, .disturbance-label { top: 204px; right: auto; left: 12px; }
   .disturbance-label { top: 160px; right: 12px; left: auto; }
-  .recovery-background-label { bottom: var(--map-overlay-inset); left: var(--map-overlay-inset); }
+  .recovery-background-label { bottom: calc(var(--map-overlay-inset) + var(--map-scale-control-height) + var(--map-overlay-stack-gap)); left: var(--map-overlay-inset); }
   .recovery-loading { top: 292px; }
   .disturbance-legend { top: 205px; bottom: auto; left: 12px; width: min(280px, calc(100vw - 24px)); padding: 10px 10px 9px; }
   .disturbance-legend-values { gap: 3px; font-size: 0.59rem; }
