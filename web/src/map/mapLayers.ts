@@ -43,9 +43,11 @@ export const DISTURBANCE_VECTOR_LAYER_IDS = [
 interface DisturbanceLayerVisibilityMap {
   getLayer: (layerId: string) => unknown;
   setLayoutProperty: (layerId: string, property: "visibility", value: "visible" | "none") => void;
+  isStyleLoaded?: () => boolean | void;
 }
 
 export function setDisturbanceLayersVisible(map: DisturbanceLayerVisibilityMap, visible: boolean): void {
+  if (map.isStyleLoaded && !map.isStyleLoaded()) return;
   const visibility = visible ? "visible" : "none";
   for (const layerId of DISTURBANCE_VECTOR_LAYER_IDS) {
     if (map.getLayer(layerId)) map.setLayoutProperty(layerId, "visibility", visibility);

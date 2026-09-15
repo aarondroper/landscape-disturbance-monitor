@@ -40,6 +40,15 @@ describe("integrated application shell contract", () => {
     expect(appSource.match(/boundariesVisible=\{disturbanceBoundariesVisible\}/g)).toHaveLength(3);
   });
 
+  it("keeps the boundary control independent from mode and visibility state", () => {
+    expect(headerSource.match(/type="checkbox"/g)).toHaveLength(1);
+    expect(headerSource).not.toContain("disabled=");
+    expect(headerSource).toContain("onChange={(event) => onDisturbanceBoundariesVisibleChange(event.target.checked)}");
+    expect(appSource).toContain("const [mapMode, setMapMode] = useState<MapViewMode>(DEFAULT_MAP_MODE);");
+    expect(appSource).not.toContain("setDisturbanceBoundariesVisible(true)");
+    expect(appSource).not.toContain("[mapMode]");
+  });
+
   it("keeps the unified inspector content and neutral initial selection", () => {
     expect(appSource).toContain("<InspectorPanel");
     expect(inspectorSource).toContain("recovery-year-control");
@@ -111,6 +120,16 @@ describe("integrated application shell contract", () => {
     expect(disturbanceSource).toContain("dnbrSource()");
     expect(recoverySource).toContain("recoveryLayer(year)");
     expect(compareSource).toContain("jumpTo(cameraSnapshotOf(beforeMap))");
+  });
+
+  it("re-applies the shared visibility after Disturbance and Recovery maps become ready", () => {
+    expect(disturbanceSource).toContain("map.on(\"idle\", markMapReady)");
+    expect(disturbanceSource).toContain("if (mapReadyRef.current) return;");
+    expect(disturbanceSource).toContain("setDisturbanceLayersVisible(map, boundariesVisibleRef.current)");
+    expect(recoverySource).toContain("map.on(\"idle\", markMapReady)");
+    expect(recoverySource).toContain("if (mapReadyRef.current) return;");
+    expect(recoverySource).toContain("setDisturbanceLayersVisible(map, boundariesVisibleRef.current)");
+    expect(cssSource).not.toContain(".boundary-toggle__input:disabled");
   });
 
   it("retains the responsive fallback for smaller screens", () => {

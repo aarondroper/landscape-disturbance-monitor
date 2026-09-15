@@ -96,6 +96,21 @@ describe("comparison map configuration", () => {
     expect(layoutCalls.slice(-5).every(({ visibility }) => visibility === "visible")).toBe(true);
   });
 
+  it("waits for map style readiness without losing the requested visibility", () => {
+    const layoutCalls: string[] = [];
+    const map = {
+      isStyleLoaded: () => false,
+      getLayer: () => ({}),
+      setLayoutProperty: (id: string) => layoutCalls.push(id),
+    };
+    setDisturbanceLayersVisible(map, false);
+    expect(layoutCalls).toEqual([]);
+
+    map.isStyleLoaded = () => true;
+    setDisturbanceLayersVisible(map, false);
+    expect(layoutCalls).toHaveLength(DISTURBANCE_VECTOR_LAYER_IDS.length);
+  });
+
   it("keeps a clear normal, hover, and selected visual hierarchy", () => {
     const [fill, casing, outline, halo, selectedOutline] = disturbanceLayers();
     const fillOpacity = fill.paint?.["fill-opacity"] as unknown[];

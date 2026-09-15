@@ -163,10 +163,13 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
     const markMapReady = () => {
       if (disposed) return;
       if (!map.isStyleLoaded() || !map.getSource(DISTURBANCE_SOURCE_ID)) return;
+      if (mapReadyRef.current) return;
       mapReadyRef.current = true;
+      setDisturbanceLayersVisible(map, boundariesVisibleRef.current);
       if (boundariesVisibleRef.current && selectedIdRef.current) setDisturbanceFeatureState(map, selectedIdRef.current, "selected", true);
     };
     map.on("styledata", markMapReady);
+    map.on("idle", markMapReady);
     map.once("load", handleLoad);
 
     return () => {
@@ -174,6 +177,7 @@ export function DisturbanceMap({ disturbances, selectedId, initialCamera, onSele
       resizeObserver.disconnect();
       map.off("load", handleLoad);
       map.off("styledata", markMapReady);
+      map.off("idle", markMapReady);
       map.off("error", handleMapError);
       map.off("moveend", reportCamera);
       map.off("sourcedata", handleSourceData);
