@@ -167,7 +167,7 @@ export function parseByteRange(
 }
 
 export default defineConfig({
-  publicDir: false,
+  publicDir: "public",
   plugins: [react(), rangeAssetMiddleware(), emitMapLibreSharedWorker()],
   optimizeDeps: { exclude: ["maplibre-gl"] },
   server: { port: 5173, strictPort: true },

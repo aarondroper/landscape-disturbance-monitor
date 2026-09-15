@@ -2,10 +2,9 @@
 
 The React/TypeScript application in `web/` is a presentation-ready, map-first
 portfolio product. It is built with
-Vite 8 and MapLibre GL JS 6. It has no backend or API. Vite exposes the
-existing generated package at `data/derived/web-delivery/` as its static
-`publicDir`, so the frontend source and generated geospatial products remain
-separate.
+Vite 8 and MapLibre GL JS 6. It has no backend or API. Vite serves app-owned
+static assets from `web/public/`, while the generated package at
+`data/derived/web-delivery/` remains separate.
 
 The map uses a local MapLibre style with no remote basemap or API key. The
 top-level view control has three modes: `Compare` (the default), `Disturbance`,
@@ -159,3 +158,6 @@ the environment-specific validation results for each release.
 The automated frontend, Python, and static-package checks run without a
 browser executable. Interactive browser and screenshot QA therefore remains
 an environment-specific release check.
+
+To replace the application mark, replace `web/public/app-logo.svg` while
+retaining the filename; no React or CSS changes are required.

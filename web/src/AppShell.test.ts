@@ -21,11 +21,15 @@ describe("integrated application shell contract", () => {
   });
 
   it("keeps the brand slot, project metadata, and exactly three modes in the rail", () => {
-    expect(headerSource).toContain('className="app-logo brand-mark"');
+    expect(headerSource).toContain('className="app-logo-slot"');
+    expect(headerSource).toContain('src="/app-logo.svg"');
+    expect(headerSource).toContain('alt=""');
     expect(headerSource).toContain("Hälsingland, Sweden · 2017–2026");
     expect(headerSource).toContain("Sentinel-2 disturbance &amp; spectral recovery");
     expect(headerSource).toContain("Methodology");
     expect(headerSource).toContain("MAP_VIEW_MODES.map");
+    expect(cssSource).toContain(".app-logo-slot");
+    expect(cssSource).toContain("object-fit: contain");
     expect(MAP_VIEW_MODES).toEqual(["compare", "disturbance", "recovery"]);
   });
 

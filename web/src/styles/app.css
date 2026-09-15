@@ -87,9 +87,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
 }
 
 .brand-lockup { display: flex; align-items: center; gap: 11px; }
-.brand-mark { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border: 1px solid rgba(49, 95, 88, 0.3); border-radius: 10px; background: var(--accent-wash); color: var(--accent-strong); }
-.brand-mark svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
-.brand-mark circle { fill: currentColor; stroke: none; }
+.app-logo-slot { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; overflow: hidden; border: 1px solid rgba(49, 95, 88, 0.3); border-radius: 10px; background: var(--accent-wash); }
+.app-logo { display: block; width: 100%; height: 100%; object-fit: contain; }
 .wordmark { color: var(--ink); font-size: 1.06rem; font-weight: 720; letter-spacing: -0.025em; line-height: 1.15; }
 .context-line { margin-top: 4px; color: var(--ink-muted); font-size: 0.78rem; letter-spacing: 0.025em; }
 .header-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
@@ -293,9 +292,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
     padding: 28px 24px 30px;
     color: var(--rail-ink);
   }
-  .app-sidebar .brand-lockup { align-items: flex-start; gap: 12px; }
-  .app-sidebar .brand-mark { width: 38px; height: 38px; flex-basis: 38px; border-color: rgba(143, 192, 175, 0.4); border-radius: 10px; background: rgba(143, 192, 175, 0.12); color: var(--rail-accent); }
-  .app-sidebar .brand-mark svg { width: 28px; height: 28px; }
+  .app-sidebar .brand-lockup { align-items: center; gap: 12px; }
+  .app-sidebar .app-logo-slot { width: 38px; height: 38px; flex-basis: 38px; border-color: rgba(143, 192, 175, 0.4); border-radius: 10px; background: rgba(143, 192, 175, 0.12); }
   .app-sidebar .wordmark { color: var(--rail-ink); font-size: 1.08rem; }
   .app-sidebar .context-line { color: var(--rail-muted); font-size: 0.79rem; }
   .app-sidebar .header-row { align-items: flex-start; flex-direction: column; gap: 11px; margin-top: 24px; }
@@ -358,8 +356,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
 
 @media (max-width: 640px) {
   .app-sidebar { padding: 13px 14px 12px; }
-  .brand-mark { width: 31px; height: 31px; flex-basis: 31px; border-radius: 8px; }
-  .brand-mark svg { width: 23px; height: 23px; }
+  .app-logo-slot { width: 31px; height: 31px; flex-basis: 31px; border-radius: 8px; }
   .wordmark { font-size: 0.98rem; }
   .context-line { font-size: 0.72rem; }
   .descriptor { font-size: 0.62rem; letter-spacing: 0.08em; }
