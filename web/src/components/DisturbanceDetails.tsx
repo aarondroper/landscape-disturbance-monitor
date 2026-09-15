@@ -24,7 +24,6 @@ export function DisturbanceDetails({ disturbance, series, mapMode, mappedYear, s
   if (!disturbance) {
     return (
       <section className="details-section details-section--quiet" aria-label="Disturbance details">
-        <span className="panel-kicker">Disturbance geography</span>
         <h2>Select a disturbance area</h2>
         <p>{EMPTY_SELECTION_PRIMARY}</p>
         <p className="empty-selection-hint">{EMPTY_SELECTION_SECONDARY}</p>

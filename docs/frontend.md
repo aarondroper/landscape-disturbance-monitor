@@ -5,6 +5,8 @@ portfolio product. It is built with
 Vite 8 and MapLibre GL JS 6. It has no backend or API. Vite serves app-owned
 static assets from `web/public/`, while the generated package at
 `data/derived/web-delivery/` remains separate.
+The interface uses the locally bundled Source Sans 3 family with only the
+400–700 weights required by the application.
 
 The map uses a local MapLibre style with no remote basemap or API key. The
 top-level view control has three modes: `Compare` (the default), `Disturbance`,
