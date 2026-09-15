@@ -30,6 +30,9 @@ describe("integrated application shell contract", () => {
     expect(headerSource).toContain("MAP_VIEW_MODES.map");
     expect(cssSource).toContain(".app-logo-slot");
     expect(cssSource).toContain("object-fit: contain");
+    expect(cssSource).toContain("width: 64px; height: 64px; flex-basis: 64px");
+    expect(cssSource).toContain("padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none");
+    expect(cssSource).toContain("width: 52px; height: 52px; flex-basis: 52px");
     expect(MAP_VIEW_MODES).toEqual(["compare", "disturbance", "recovery"]);
   });
 

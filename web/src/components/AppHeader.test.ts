@@ -42,10 +42,9 @@ describe("application header contract", () => {
     expect(markup).toContain("Methodology");
   });
 
-  it("keeps the placeholder lightweight and text-free", () => {
-    expect(logoAsset.trimStart()).toMatch(/^<svg\b/);
+  it("keeps the canonical logo asset as a text-free SVG", () => {
+    expect(logoAsset).toMatch(/<svg\b/);
     expect(logoAsset).not.toMatch(/<text\b/i);
-    expect(logoAsset.length).toBeLessThan(2048);
   });
 
   it("keeps the three existing map modes in the tab control", () => {

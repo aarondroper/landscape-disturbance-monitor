@@ -86,9 +86,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
   box-shadow: 0 10px 28px rgba(47, 61, 53, 0.13);
 }
 
-.brand-lockup { display: flex; align-items: center; gap: 11px; }
-.app-logo-slot { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; overflow: hidden; border: 1px solid rgba(49, 95, 88, 0.3); border-radius: 10px; background: var(--accent-wash); }
+.brand-lockup { display: flex; align-items: center; gap: 14px; }
+.app-logo-slot { display: grid; width: 54px; height: 54px; flex: 0 0 54px; place-items: center; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; outline: 0; }
 .app-logo { display: block; width: 100%; height: 100%; object-fit: contain; }
+.app-title-block { min-width: 0; }
 .wordmark { color: var(--ink); font-size: 1.06rem; font-weight: 720; letter-spacing: -0.025em; line-height: 1.15; }
 .context-line { margin-top: 4px; color: var(--ink-muted); font-size: 0.78rem; letter-spacing: 0.025em; }
 .header-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
@@ -292,8 +293,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
     padding: 28px 24px 30px;
     color: var(--rail-ink);
   }
-  .app-sidebar .brand-lockup { align-items: center; gap: 12px; }
-  .app-sidebar .app-logo-slot { width: 38px; height: 38px; flex-basis: 38px; border-color: rgba(143, 192, 175, 0.4); border-radius: 10px; background: rgba(143, 192, 175, 0.12); }
+  .app-sidebar .brand-lockup { align-items: center; gap: 14px; }
+  .app-sidebar .app-logo-slot { width: 64px; height: 64px; flex-basis: 64px; }
   .app-sidebar .wordmark { color: var(--rail-ink); font-size: 1.08rem; }
   .app-sidebar .context-line { color: var(--rail-muted); font-size: 0.79rem; }
   .app-sidebar .header-row { align-items: flex-start; flex-direction: column; gap: 11px; margin-top: 24px; }
@@ -356,7 +357,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent
 
 @media (max-width: 640px) {
   .app-sidebar { padding: 13px 14px 12px; }
-  .app-logo-slot { width: 31px; height: 31px; flex-basis: 31px; border-radius: 8px; }
+  .app-logo-slot { width: 52px; height: 52px; flex-basis: 52px; }
   .wordmark { font-size: 0.98rem; }
   .context-line { font-size: 0.72rem; }
   .descriptor { font-size: 0.62rem; letter-spacing: 0.08em; }
