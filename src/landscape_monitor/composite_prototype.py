@@ -179,7 +179,7 @@ def index_validity_stages(
     return {
         "source_valid": source_valid,
         "negative_present": negative_present,
-        # Compatibility alias used by the completed 4E diagnostic.
+        # Preserve the rejection mask separately for coverage diagnostics.
         "negative_rejected": negative_present & (mode is ReflectanceTreatment.REJECT),
         "before_denominator": before_denominator,
         "denominator_failure": before_denominator & ~denominator_valid,

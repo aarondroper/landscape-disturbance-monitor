@@ -1,4 +1,4 @@
-"""Configuration loading and validation for the feasibility probe."""
+"""Configuration loading and validation for the landscape monitoring pipeline."""
 
 from __future__ import annotations
 

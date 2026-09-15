@@ -1,76 +1,76 @@
 # Landscape Disturbance Monitor
 
-An interactive case study of the 2018 disturbance landscape around
-Kårböle/Ljusdal in Hälsingland, Sweden. The project uses Sentinel-2 imagery to
-detect a fixed 2017→2018 spectral disturbance and examine spectral recovery
-from 2017 through 2026 in a React, TypeScript, and MapLibre application.
+Sentinel-2 disturbance detection and spectral recovery for the 2018
+Kårböle/Ljusdal wildfire landscape in Hälsingland, Sweden. The repository
+combines a reproducible Python geospatial pipeline with a static
+React/MapLibre application.
 
-**Live application:** [https://landscape-disturbance-monitor.pages.dev](https://landscape-disturbance-monitor.pages.dev)
+## Live application
+
+[Open the Landscape Disturbance Monitor](https://landscape-disturbance-monitor.pages.dev)
 
 ## What it demonstrates
 
-The repository combines cloud-hosted Sentinel-2/STAC discovery, reproducible
-raster processing, project-derived disturbance objects, annual recovery
-statistics, Cloud Optimized GeoTIFF (COG) delivery, and a static geospatial
-frontend.
+- cloud-native Sentinel-2, STAC, and COG processing;
+- memory-bounded annual composites;
+- transparent disturbance and spectral-recovery methodology;
+- browser-native COG visualization; and
+- static JSON/GeoJSON delivery without a backend.
 
 ## Application
 
-The frontend has three focused modes:
-
 - **Compare** — swipe 2017 and 2018 natural-color imagery.
-- **Disturbance** — inspect the fixed 2017→2018 dNBR disturbance layer and
-  select one of 80 project-derived objects.
-- **Recovery** — switch annual spectral-recovery COGs and inspect the selected
-  object’s NBR and recovery timeline.
+- **Disturbance** — inspect fixed 2017→2018 dNBR and select detected
+  disturbance areas.
+- **Recovery** — switch annual recovery layers and inspect an object’s NBR and
+  spectral-recovery trajectory.
 
 ## Methodology
 
-The disturbance rule retains pixels where `NBR_2017 > 0.30` and
-`dNBR = NBR_2017 - NBR_2018 >= 0.30`, then keeps 8-connected components of at
-least 5 ha. The resulting objects are derived for this case study; they are
-not an official fire perimeter.
+The analysis uses Copernicus Sentinel-2 Level-2A data discovered through the
+Element 84 Earth Search STAC API. Annual composites cover August 1–31 for
+2017–2026 on a shared EPSG:32633, 20 m grid.
 
-For each year, spectral recovery is calculated as:
+The disturbance rule is `NBR_2017 > 0.30` and `dNBR >= 0.30`, followed by
+8-neighbour connected components of at least 5 ha. It retains 80
+project-derived disturbance objects covering approximately 6,808 ha. NBR is
+the primary index; NDVI is contextual.
+
+Spectral recovery is calculated relative to the 2017 NBR baseline:
 
 ```text
 (NBR_y - NBR_2018) / (NBR_2017 - NBR_2018)
 ```
 
-This is a spectral recovery measure, not ecological recovery. Values are not
-clamped, so values below 0 and above 1 are possible. The detailed processing,
-quality checks, and limitations are documented in [`docs/`](docs/).
-
-## Data
-
-The analysis uses Copernicus Sentinel-2 Level-2A data discovered through the
-Element 84 Earth Search STAC API. It builds August annual composites for
-2017–2026 over the fixed Kårböle/Ljusdal case-study area. Natural-color
-presentation imagery is generated for benchmark years 2017, 2018, 2020, 2023,
-and 2026.
+Values remain unbounded, and recovery is spectral rather than ecological.
+Poor-coverage observations remain available but are flagged. See
+[`docs/methodology.md`](docs/methodology.md) for the complete analytical
+definition and limitations.
 
 ## Architecture
 
-Python geospatial processing produces a reproducible package of analytical
-rasters, browser COGs, and JSON/GeoJSON. The React/MapLibre frontend reads that
-package as static assets; no backend or API is required. COGs are intended for
-range-capable object storage in deployment, while local development serves the
-same package through Vite.
+```text
+Python processing -> generated static web package -> Cloudflare R2
+React/MapLibre shell -> Cloudflare Pages
+```
+
+The browser reads static JSON, GeoJSON, and COG assets directly. RGB
+presentation imagery uses a separate 10 m workflow; it does not replace the
+20 m analytical products. See [`docs/frontend.md`](docs/frontend.md) and
+[`docs/deployment.md`](docs/deployment.md).
 
 ## Repository structure
 
 ```text
 config/   project configuration
 src/      Python analysis and delivery builders
-tests/    Python tests
-docs/     methodology, delivery, and deployment notes
+tests/    Python and frontend tests
+docs/     methodology, frontend, and deployment documentation
 web/      React/TypeScript/MapLibre frontend
 deploy/   deployment configuration examples
 ```
 
-## Running the project
-
-### Python analysis environment
+## Local development
 
 Python 3.12 or newer is required. From a virtual environment:
 
@@ -80,25 +80,7 @@ pytest
 ruff check .
 ```
 
-The main commands are:
-
-```bash
-python -m landscape_monitor.stac_probe
-python -m landscape_monitor.build_composite_prototype
-python -m landscape_monitor.build_disturbance
-python -m landscape_monitor.build_annual_series --year 2019
-python -m landscape_monitor.build_annual_batch --years 2019 2020
-python -m landscape_monitor.build_recovery
-```
-
-The STAC probe and annual/composite builds read live remote data. See the
-technical documentation before running a full 2017–2026 rebuild.
-
-### Frontend development
-
-The frontend requires Node.js 24 or newer for the current comparison package.
-The generated local package must exist at `data/derived/web-delivery/` for
-the application to display data.
+The frontend requires Node.js 24 or newer:
 
 ```bash
 cd web
@@ -106,39 +88,36 @@ npm ci
 npm run dev
 ```
 
-For a production shell build, set `VITE_GEO_ASSET_BASE_URL` to the public
-asset origin described in [`docs/deployment.md`](docs/deployment.md).
+The generated local package must exist at `data/derived/web-delivery/` for
+the application to display geospatial data. See
+[`docs/deployment.md`](docs/deployment.md) for the Vite `/geo/` setup.
 
-## Reproducing generated data
+## Reproducing analytical products
 
-Public clones intentionally do not contain `data/derived/`. Derived rasters,
-delivery COGs, JSON/GeoJSON packages, and QA images are reproducible outputs,
-not source files. A complete rebuild is a live and potentially expensive
-workflow:
+Generated rasters, delivery COGs, JSON/GeoJSON packages, and QA images are
+reproducible outputs and intentionally excluded from Git. The workflow reads
+live remote data and can be expensive.
 
-1. Run `python -m landscape_monitor.stac_probe` to create the local STAC
-   inventory.
-2. Run `python -m landscape_monitor.build_composite_prototype` and
-   `python -m landscape_monitor.build_disturbance`.
-3. Run `python -m landscape_monitor.build_annual_batch --years 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026`, then
-   `python -m landscape_monitor.build_recovery`.
-4. Build each benchmark year with
-   `python -m landscape_monitor.build_rgb_imagery --year YEAR`, convert each
-   master with `python -m landscape_monitor.build_web_imagery --year YEAR`,
-   then run `python -m landscape_monitor.build_web_data` and
-   `python -m landscape_monitor.build_web_rasters`.
+The main processing stages are:
 
-The exact command options and output contracts are documented in
-[`docs/annual-compositing.md`](docs/annual-compositing.md),
-[`docs/recovery-analysis.md`](docs/recovery-analysis.md), and the web-delivery
-notes in [`docs/`](docs/).
+```bash
+python -m landscape_monitor.stac_probe
+python -m landscape_monitor.build_composite_prototype
+python -m landscape_monitor.build_disturbance
+python -m landscape_monitor.build_annual_batch --years 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026
+python -m landscape_monitor.build_recovery
+python -m landscape_monitor.build_web_data
+python -m landscape_monitor.build_web_rasters
+```
+
+Benchmark RGB imagery is built one year at a time with
+`landscape_monitor.build_rgb_imagery`, followed by
+`landscape_monitor.build_web_imagery`. The exact output contracts and
+diagnostic tools are documented in [`docs/methodology.md`](docs/methodology.md).
 
 ## Testing
 
-### Default source validation
-
-These checks are self-contained and work from a clean clone. Generated
-products are intentionally excluded from Git.
+Default checks work from a clean clone without generated raster data:
 
 ```bash
 python -m pip install -e '.[dev]'
@@ -153,10 +132,8 @@ npm run typecheck
 npm run build
 ```
 
-### Generated-data validation
-
-After the local EO/data pipeline has produced `data/derived/`, run the
-generated-package checks explicitly:
+Generated-data checks are optional and run only after the local delivery
+package exists:
 
 ```bash
 python -m landscape_monitor.validate_web_delivery
@@ -166,30 +143,23 @@ cd web
 npm run test:generated
 ```
 
-The Python marker and frontend command validate relationships in the real
-locally generated browser-delivery package. If that ignored package is absent,
-they report a deliberate skip/diagnostic; they do not make default source
-validation appear to have validated generated products.
+## Data and provenance
+
+The analytical workflow uses Copernicus Sentinel-2 Level-2A imagery through
+Element 84 Earth Search. Generated products remain local or are served from
+the configured public object-storage origin; they are not committed to Git.
 
 ## Limitations
 
-- Detected objects are project-derived spectral disturbance objects, not an
-  official wildfire perimeter or a universal burn-severity product.
-- Recovery is spectral recovery, not ecological recovery.
-- Later-year valid coverage varies by object; missing pixels are not
-  interpolated.
-- 2023 and 2026 natural-color presentation imagery has lower visual signal in
-  this case study.
-- This is a fixed case-study analysis of the 2017→2018 disturbance, not a
-  real-time or operational monitoring service.
+The detected areas are project-derived spectral disturbance objects, not an
+official wildfire perimeter or burn-severity classification. Recovery is
+spectral recovery, not ecological recovery. Valid coverage varies by year
+and object, and the August composites describe a fixed case study rather than
+a real-time monitoring service.
 
 ## Deployment
 
-The frontend shell is currently deployed on Cloudflare Pages at the live
-application URL above. The generated geospatial package is served separately
-from public range-capable object storage. This remains a portfolio case study,
-not a production monitoring service.
-
-The split static deployment model, COG range-request requirements, and local
-validation workflow are described in
-[`docs/deployment.md`](docs/deployment.md).
+The frontend shell is deployed on Cloudflare Pages and the generated
+geospatial package is served from range-capable Cloudflare R2 storage. See
+[`docs/deployment.md`](docs/deployment.md) for COG Range/CORS requirements and
+production instructions.
